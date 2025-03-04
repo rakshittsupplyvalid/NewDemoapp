@@ -51,7 +51,23 @@ const Navbar: React.FC = () => {
           <MaterialIcons name="logout" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
-      <View style={styles.circleBackground} /> {/* Circle Background */}
+      <View>
+        
+      </View >
+  
+  <View style={styles.container}>
+
+       <View style={styles.containertwo}>
+
+     
+      <Text style={styles.navbarText}>{currentRouteName}</Text>
+      <Text style={styles.navbarInnerText}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. </Text>
+      </View>
+     
+      <View style={styles.circleBackground} />
+      </View>
+  
+    
     </SafeAreaView>
   );
 };
@@ -77,10 +93,36 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
+  
   headerTitle: {
     color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
+    
+  },
+
+  container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+  },
+  containertwo: {
+    width: 250,
+    height: 100,
+    
+   padding : 30,
+
+  },
+  navbarText: {
+    fontSize: 19,
+    fontWeight: 'bold',
+    color: 'black',
+    textTransform: 'uppercase',
+  },
+  navbarInnerText :{
+    width: 250,
+
   },
   circleBackground: {
     backgroundColor: '#F6A00191',
@@ -88,10 +130,12 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 50,
     position: 'relative',
-    top: -35,
-    left: 310,
+    top: -30,
+    left: 65,
     zIndex: -1,
   },
+ 
+ 
 });
 
 export default Navbar;

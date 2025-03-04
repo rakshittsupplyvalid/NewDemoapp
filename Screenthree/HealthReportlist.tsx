@@ -1,62 +1,93 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View, TouchableOpacity, Image, TextInput } from 'react-native';
+import {
+  Modal,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  View,
+  TouchableOpacity,
+  Image,
+  TextInput
+} from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Navbar from '../App/Navbar';
 import api from '../service/api/apiInterceptors';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImageViewing from "react-native-image-viewing";
+import { format, isWithinInterval } from 'date-fns';
+import moment from "moment";
 
 const HealthReportlist = () => {
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [showImages, setShowImages] = useState(false);
+    const [showImages, setShowImages] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
-
+  const [pageNumber, setPageNumber] = useState(1);
+  const pageSize = 10;
+  const [hasMoreData, setHasMoreData] = useState(true);
 
   useEffect(() => {
-    const fetchHealthReports = async () => {
-      try {
-        const response = await api.get('/api/healthreport?ReportType=RECEIVE');
-        setReports(response.data);
-        setFilteredReports(response.data);
-
-      } catch (error) {
-        console.error('Error fetching health reports:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHealthReports();
+    fetchReports(true);
   }, []);
 
+  const fetchReports = async (isInitialLoad = false) => {
+    if (!hasMoreData || loading) return;
+    setLoading(true);
+
+    try {
+      const response = await api.get(
+        `/api/healthreport?ReportType=RECEIVE&PageNumber=${pageNumber}&PageSize=${pageSize}&ApprovalStatus=PENDING`
+      );
+
+      const newReports = response.data || [];
+
+      if (isInitialLoad) {
+        setReports(newReports);
+      } else {
+        setReports((prevReports) => [...prevReports, ...newReports]);
+      }
+
+      if (newReports.length < pageSize) {
+        setHasMoreData(false);
+      } else {
+        setPageNumber((prevPage) => prevPage + 1);
+      }
+    } catch (error) {
+      console.error("Error fetching health reports:", error);
+    }
+
+    setLoading(false);
+  };
 
   useEffect(() => {
     let filteredData = reports;
+
     if (searchQuery) {
       filteredData = filteredData.filter(item =>
-        item.assayername.toLowerCase().includes(searchQuery.toLowerCase())
+        item.assayername.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.trucknumber.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-   
 
     if (startDate && endDate) {
       filteredData = filteredData.filter(item => {
-        const reportDate = new Date(item.date).getTime(); // Convert to timestamp
-        return reportDate >= startDate.getTime() && reportDate <= endDate.getTime();
+        const reportDate = new Date(item.date);
+        return isWithinInterval(reportDate, { start: startDate, end: endDate });
       });
     }
-    
-   
 
     setFilteredReports(filteredData);
   }, [searchQuery, startDate, endDate, reports]);
+
 
   const fetchReportDetails = async (id: any) => {
     try {
@@ -69,14 +100,11 @@ const HealthReportlist = () => {
     }
   };
 
-  
-
 
 
   return (
     <SafeAreaView style={styles.container}>
       <Navbar />
-
 
       <TextInput
         style={styles.searchInput}
@@ -85,9 +113,6 @@ const HealthReportlist = () => {
         onChangeText={setSearchQuery}
       />
 
-
-
-      {/* Date Filters */}
       <View style={styles.dateFilterContainer}>
         <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartPicker(true)}>
           <Text style={styles.buttonText}>{startDate ? startDate.toDateString() : "Start Date"}</Text>
@@ -121,48 +146,43 @@ const HealthReportlist = () => {
         />
       )}
 
-      {loading ? (
-        <ActivityIndicator size="large" color="blue" />
-      ) : (
-        <FlatList
-          data={filteredReports}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.one}>
-
-              <View style={styles.card}
-               
-              >
-                <View style={styles.topRightCorner} />
-
-                <View style={styles.bottomLeftCorner} />
-                <View style={styles.row}>
-                  <Text style={styles.label}>Assayer Name:</Text>
-                  <Text style={styles.value}>{item.assayername}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Date:</Text>
-                  <Text style={styles.value}>{new Date(item.date).toLocaleDateString('en-GB')}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Truck Number:</Text>
-                  <Text style={styles.value}>{item.trucknumber}</Text>
-                </View>
-
-
-                <View style={styles.parentbutton}>
-                  <TouchableOpacity style={styles.button} onPress={() => fetchReportDetails(item.id)}>
-                    <Text style={styles.buttonText}>View Report</Text>
-                  </TouchableOpacity>
-                </View>
+      <FlatList
+        data={filteredReports}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.one}>
+            <View style={styles.card}>
+              <View style={styles.topRightCorner} />
+              <View style={styles.bottomLeftCorner} />
+              <View style={styles.row}>
+                <Text style={styles.label}>Assayer Name:</Text>
+                <Text style={styles.value}>{item.assayername}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Date:</Text>
+                <Text style={styles.value}>
+                  {moment(item.date).add(5, "hours").format("YYYY-MM-DD HH:mm")}
+                </Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Truck Number:</Text>
+                <Text style={styles.value}>{item.trucknumber}</Text>
+              </View>
+              <View style={styles.parentbutton}>
+                <TouchableOpacity style={styles.button} onPress={() => fetchReportDetails(item.id)}>
+                  <Text style={styles.buttonText}>View Report</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          )}
-        />
-      )}
+          </View>
+        )}
+        onEndReached={() => fetchReports(false)}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={loading ? <ActivityIndicator size="large" color="red" /> : null}
+      />
 
-      {/* Modal for Report Details */}
-      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+         {/* Modal for Report Details */}
+         <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.heading}>
             <Text style={styles.text} >Recieve Health Report Details</Text>
@@ -172,8 +192,14 @@ const HealthReportlist = () => {
             {selectedReport && (
               <>
                 <View style={styles.rowone}>
-                  <Text style={styles.labelone}>Assayer Name:</Text>
+                  <Text style={styles.labelone}>Assayerduhd Name:</Text>
                   <Text style={styles.valueone}>{selectedReport.assayername}</Text>
+                </View>
+
+
+                <View style={styles.rowone}>
+                  <Text style={styles.labelone}>id</Text>
+                  <Text style={styles.valueone}>{selectedReport.id}</Text>
                 </View>
 
                 <View style={styles.rowone}>
@@ -183,7 +209,12 @@ const HealthReportlist = () => {
 
                 <View style={styles.rowone}>
                   <Text style={styles.labelone}>Date:</Text>
-                  <Text style={styles.valueone}>{new Date(selectedReport.date).toLocaleDateString('en-GB')}</Text>
+                  <Text style={styles.valueone}>
+                    {new Date(selectedReport.date).toLocaleDateString('en-GB')}
+                  </Text>
+
+
+
                 </View>
 
                 <View style={styles.rowone}>
@@ -197,7 +228,7 @@ const HealthReportlist = () => {
                     <>
                       <View style={styles.rowone}>
                         <Text style={styles.labelone}>Destination Branch:</Text>
-                        <Text style={styles.valueone}>{parsedData.CNAName}</Text>
+                        <Text style={styles.valueone}>{parsedData.CNAName}duti</Text>
                       </View>
                       <View style={styles.rowone}>
                         <Text style={styles.labelone}>Storage Name:</Text>
@@ -281,7 +312,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   searchInput: { margin: 10, padding: 17, borderWidth: 1, borderRadius: 25, borderColor: '#ccc', backgroundColor: 'fff' },
   dateFilterContainer: { flexDirection: 'row', justifyContent: 'space-around', marginVertical: 10 },
-  dateButton: { backgroundColor: '#007BFF', padding: 10, borderRadius: 5 },
+  dateButton: { backgroundColor: '#F79B00', padding: 10, borderRadius: 5 },
   one: { paddingHorizontal: 30 },
   card: { paddingHorizontal: 35, paddingVertical: 20, backgroundColor: 'white', borderRadius: 8, elevation: 3, marginVertical: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },

@@ -8,12 +8,16 @@ import api from '../service/api/apiInterceptors';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/Type';
-import { ImagePickerResponse, launchCamera } from 'react-native-image-picker';
+import { launchCamera, launchImageLibrary, ImagePickerResponse, ImageLibraryOptions } from 'react-native-image-picker';
 import styles from '../theme/Healthreport';
 import Footer from '../App/Footer';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import moment from 'moment';
+
 
 import { PermissionsAndroid } from 'react-native';
+import { Alert } from 'react-native';
+
 
 
 
@@ -42,34 +46,38 @@ const GenerateHealthReport = () => {
   const [bagCount, setBagCount] = useState('');
   const [size, setSize] = useState('');
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+
+
   const [isComment, setIsComment] = useState(false);
 
-  const [selectedValues, setSelectedValues] = useState({
+  const [selectedCompany, setSelectedCompany] = useState("");
+  const [selectedCompanyName, setSelectedCompanyName] = useState("");
+  const [selectedbranchs, setSelectedbranch] = useState("");
+  const [selectedDistrict, setSelecteddistrict] = useState("");
 
-    picker2: '',
-    picker3: '',
-    picker5: '',
-  });
 
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [previousSteps, setPreviousSteps] = useState<number[]>([]);
   const [companyId, setCompanyId] = useState('');
   const [branchId, setBranchId] = useState('');
+  const [locationId, setLocationId] = useState('');
+
 
   const [stainingColour, setStainingColour] = useState(false);
   const [stainingColourPercent, setStainingColourPercent] = useState('');
-
   const [blackSmutOnion, setBlackSmutOnion] = useState(false);
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 
   const [BlackSmutPercent, setBlackSmatPercent] = useState('');
   const [sproutedOnion, setSproutedOnion] = useState(false);
   const [sproutedPercent, setSproutedPercent] = useState('');
   const [spoiledOnion, setSpoiledOnion] = useState(false);
   const [spoiledPercent, setSpoiledPercent] = useState('');
-  const [onionSkin, setOnionSkin] = useState('DOUBLE');
+  const [onionSkin, setOnionSkin] = useState('SINGLE');
   const [moisture, setMoisture] = useState('DRY');
   const [onionSkinPercent, setOnionSkinPercent] = useState('');
   const [moisturePercent, setMoisturePercent] = useState('');
@@ -80,7 +88,6 @@ const GenerateHealthReport = () => {
   const [SpoliedComment, setSpoliedComment] = useState('');
 
   const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
-
 
 
   const requestCameraPermission = async () => {
@@ -135,97 +142,200 @@ const GenerateHealthReport = () => {
     );
   };
 
+  const openGallery = () => {
+    const options: ImageLibraryOptions = {
+      mediaType: 'photo', // Only allow photos
+      includeBase64: false, // Don't include base64 data
+      quality: 0.8, // Image quality (0 to 1)
+    };
+
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorMessage) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const selectedImage = response.assets[0];
+
+        console.log('Selected image URI:', selectedImage.uri); // Debugging
+
+        const image = {
+          uri: selectedImage.uri ?? '',
+          fileName: selectedImage.fileName || `photo_${Date.now()}.jpg`,
+          type: selectedImage.type || 'image/jpeg',
+        };
+
+        setImageUri((prevImages) => [...prevImages, image]); // Add the new image to the state
+      }
+    });
+  };
   const handleNext = (nextStep: number) => {
+    const truckNumberRegex = /^[A-Z]{2}\d{2}[A-Z]{2}\d{4}$/;
+
+
+    if (currentStep === 1) {
+      if (!selectedCompany) {
+        Alert.alert("Validation Error", "Company is required");
+        return;
+      }
+      if (!selectedbranchs) {
+        Alert.alert("Validation Error", "Branch is required");
+        return;
+      }
+      if (!selectedDistrict) {
+        Alert.alert("Validation Error", "District is required");
+        return;
+      }
+    }
+
+
+    if (currentStep === 2) {
+      if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
+        Alert.alert("Validation Error", "All fields are required!");
+        return;
+      }
+    }
+
+    if (currentStep === 2 && !truckNumberRegex.test(truckNumber.trim().toUpperCase())) {
+      Alert.alert("Validation Error", "truck number is reqired!");
+      return;
+    }
+
+
+    if (currentStep === 3) {
+      if (onionSkin === "SINGLE" && !onionSkinPercent) {
+        Alert.alert("Validation error", "Onion Skin Percent is required!");
+        return;
+      }
+
+      if (onionSkin === "DOUBLE" && !onionSkinPercent) {
+        Alert.alert("Validation error", "Onion Skin Percent is required!");
+        return;
+      }
+      if (moisture === "WET" && !moisturePercent) {
+        Alert.alert("Validation error", "Moisture Percent is required!");
+        return;
+      }
+      if (isSpoiledPercentVisible && !SpoliedPercent) {
+        Alert.alert("Validation error", "Spoiled Percent is required!");
+        return;
+      }
+      if (isSpoiledPercentVisible && !SpoliedBranch) {
+        Alert.alert("Validation error", "Branch Person name is required!");
+        return;
+      }
+      if (isSpoiledPercentVisible && !SpoliedComment) {
+        Alert.alert("Validation error", "Type Comments is required!");
+        return;
+      }
+          if (!imageUri || imageUri.length === 3) {
+            alert('Please upload at least three image.');
+       return;
+          }
+
+    }
+
     setPreviousSteps([...previousSteps, currentStep]); // Store current step in history
     setCurrentStep(nextStep);
+
+
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = (               
+
+    
+  ) => {
     if (previousSteps.length > 0) {
       const lastStep = previousSteps[previousSteps.length - 1]; // Get the last step
+
       setPreviousSteps(previousSteps.slice(0, -1)); // Remove last step from history
       setCurrentStep(lastStep);
     }
+
   };
+
+
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  const handleConfirm = (selectedDate: any, type: "date" | "time") => {
+    if (selectedDate) {
+      if (type === "date") {
+        const formattedDate = moment(selectedDate).format("YYYY-MM-DD"); // 🔹 UTC hata diya
+        setDate(formattedDate);
+        console.log("Formatted date:", formattedDate);
+        hideDatePicker();
+        setTimePickerVisibility(true);
+      } else if (type === "time") {
+        const formattedTime = moment(selectedDate).format("HH:mm:ss"); // 🔹 Local time liya
+  
+        setDate((prevDate) => {
+          const dateTime = `${prevDate} ${formattedTime}`;
+          console.log("Formatted Date & Time:", dateTime);
+          return dateTime;
+        });
+  
+        setTimePickerVisibility(false);
+      }
+    }
+  };
+  
 
 
 
   const handleSubmit = async () => {
-    // Required fields validation
-    if (
-      !companyId || !branchId || !truckNumber.trim() || !grossWeight ||
-      !tareWeight || !netWeight || !bagCount || !size ||
-      !fpcPersonName || !selectedDate
-    ) {
-      alert('Please fill all required fields.');
-      return;
-    }
 
-    // Date validation
-    if (!selectedDate || isNaN(new Date(selectedDate).getTime())) {
-      alert('Invalid date selected.');
-      return;
-    }
 
-    // Truck Number format validation
-    const truckNumberRegex = /^[A-Z]{2}\d{2}[A-Z]{2}\d{4}$/;
-    if (!truckNumberRegex.test(truckNumber.trim().toUpperCase())) {
-      alert('Invalid Truck Number format. Please enter in format.');
-      return;
-    }
 
-    // Function to check if value is between 1 and 100
-    // const isValidPercentage = (value: any) => {
-    //   const num = Number(value);
-    //   return !isNaN(num) && num >= 1 && num <= 100;
-    // };
 
-    // // Percentage Fields Validation
-    // if (
-    //   !isValidPercentage(stainingColourPercent) ||
-    //   !isValidPercentage(BlackSmutPercent) ||
-    //   !isValidPercentage(sproutedPercent) ||
-    //   !isValidPercentage(spoiledPercent) ||
-    //   !isValidPercentage(onionSkin)
-    // ) {
-    //   alert('All percentage values must be between 1 and 100.');
-    //   return;
-    // }
-
-    // Image upload validation
-    if (!imageUri || imageUri.length === 0) {
-      alert('Please upload at least one image.');
-      return;
-    }
 
     const formData = new FormData();
-    formData.append('companyId', companyId);
-    formData.append('branchId', branchId);
+
+
+
+    formData.append("CNAname", selectedCompanyName)
+    console.log('selectedCompanyName:', selectedCompanyName);
+
+    formData.append("DestinationBranch", selectedbranchs);
+    console.log('selectedbranchs:', selectedbranchs);
+
+
+
+
+
+
+    formData.append('DestinationDistrict', selectedDistrict); // District ID 
+    console.log('selectedDistrict:', selectedDistrict);
+
+
     formData.append('truckNumber', truckNumber);
-    formData.append('grossWeight', grossWeight);
-    formData.append("DestinationBranch", JSON.stringify(destinationBranch));
-    formData.append("DestinationDistrict", JSON.stringify(destinationDistrict));
-    formData.append('tareWeight', tareWeight);
-    formData.append('netWeight', netWeight);
-    formData.append('bagCount', bagCount);
-    formData.append('size', size);
-    formData.append('stainingColour', stainingColour.toString());
-    formData.append('stainingColourPercent', stainingColourPercent);
-    formData.append('blackSmutOnion', blackSmutOnion.toString());
+    formData.append('GrossWeight', grossWeight);
+
+    formData.append('TareWeight', tareWeight);
+    formData.append('NetWeight', netWeight);
+    formData.append('BagCount', bagCount);
+    formData.append('Size', size);
+    formData.append('StainingColour', stainingColour.toString());
+    formData.append('StainingColourPercent', stainingColourPercent);
+    formData.append('BlackSmutOnion', blackSmutOnion.toString());
     formData.append('BlackSmutPercent', BlackSmutPercent);
-    formData.append('sproutedOnion', sproutedOnion.toString());
-    formData.append('sproutedPercent', sproutedPercent);
-    formData.append('spoiledOnion', spoiledOnion.toString());
-    formData.append('spoiledPercent', spoiledPercent);
-    formData.append('onionSkin', onionSkin);
-    formData.append('moisture', moisture);
-    formData.append('onionSkinPercent', onionSkinPercent);
-    formData.append('moisturePercent', moisturePercent);
-    formData.append('fpcPersonName', fpcPersonName);
+    formData.append('SproutedOnion', sproutedOnion.toString());
+    formData.append('SproutedPercent', sproutedPercent);
+    formData.append('SpoiledOnion', spoiledOnion.toString());
+    formData.append('SpoiledPercent', spoiledPercent);
+    formData.append('OnionSkin', onionSkin);
+    formData.append('Moisture', moisture);
+    formData.append('OnionSkinPercent', onionSkinPercent);
+    formData.append('MoisturePercent', moisturePercent);
+    formData.append('FPCPersonName', fpcPersonName);
     formData.append('SpoliedPercent', SpoliedPercent);
     formData.append('SpoliedBranch', SpoliedBranch);
-    formData.append('SpoliedComment', SpoliedComment);
-    formData.append('selectedDate', new Date(selectedDate).toISOString());
+    formData.append('Date', date);
+    // formData.append('Date', updatedata);
+
+
 
     // Image Upload
     if (imageUri) {
@@ -277,128 +387,101 @@ const GenerateHealthReport = () => {
 
       // Reset step
       setCurrentStep(1);
+      console.log('response', response.data);
 
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Failed to submit Health Report. Please try again.');
+      console.log('error', error);
     }
   };
 
 
 
 
-
   useEffect(() => {
-
     fetchData2();
   }, []);
 
   useEffect(() => {
-    if (companyId) {
-      fetchData3(companyId);
 
-    }
+    if (companyId) fetchData3(companyId);
   }, [companyId]);
 
 
+
+
+
+
+
   useEffect(() => {
-    if (branchId) {
-      fetchData5(branchId);
-      console.log('abc', branchId);
-
-    }
-  }, [branchId]);
-
-
+    console.log('Updated Destination District:', destinationDistrict);
+  }, [destinationDistrict]);
 
 
 
 
   const fetchData2 = async () => {
     try {
-      const response = await api.get('/api/dropdown/company'); // API endpoint for picker 2
+      const response = await api.get("/api/dropdown/company");
       setData2(response.data);
 
+
     } catch (error) {
-      console.error('Error fetching data2:', error);
+      console.error("Error fetching data2:", error);
     }
   };
 
   const fetchData3 = async (companyId: any) => {
     try {
-      const response = await api.get(`/api/group?GroupType=Branch&BranchType=Receiving&ApprovalStatus=APPROVED&CompanyId=${companyId}`);
+      const response = await api.get(
+        `/api/group?GroupType=Branch&BranchType=Receiving&ApprovalStatus=APPROVED&CompanyId=${companyId}`
+
+      );
+
       setDestinationBranch(response.data);
 
 
-    } catch (error) {
-      console.error('Error fetching data3:', error);
 
+
+
+    } catch (error) {
+      console.error("Error fetching data3:", error);
     }
   };
+
   const fetchData5 = async (branchId: any) => {
     try {
-      const response = await api.get(`/api/dropdown/group/${branchId}/location?locationType=GENERAL
-        `);
+      const response = await api.get(
+        `/api/dropdown/group/${branchId}/location?locationType=GENERAL`
+
+      );
+
+      setDestinationDistrict(response.data);
 
 
 
-      if (Array.isArray(response.data)) {
-        setDestinationDistrict(response.data);
-        console.log('third', response.data);
-      } else {
-        console.error('Unexpected API response format:', response.data);
-        setDestinationDistrict([]);
-      }
+
     } catch (error) {
-      console.error('Error fetching data5:', error);
+      console.error("Error fetching data5:", error);
     }
   };
 
 
-  const handleValueChange = (value: any, key: any) => {
-    setSelectedValues(prev => ({
-      ...prev,
-      [key]: value
-    }));
 
-    if (key === 'picker2') {
-      setCompanyId(value); // Set companyId when picker2 (Company) value changes
-
-    }
-
-
-  };
-
-
-  const handleValueChanges = (id: any, key: any) => {
-    setSelectedValues(prev => ({
-      ...prev,
-      [key]: id // id store ho rha h
-    }));
-
-    if (key === 'picker3') {
-      setBranchId(id);  // FederationId set ho rha h
-
-    }
-
-  };
-
-
-  const onChangeDate = (event: any, selected?: Date) => {
-    if (selected) {
-      setSelectedDate(selected);
-    }
-    setShowDatePicker(false);
-  };
 
 
   useEffect(() => {
-    // Net weight calculate aur update karega
+
+    if (branchId) fetchData5(branchId);
+  }, [branchId]);
+
+  useEffect(() => {
+
     const gross = parseFloat(grossWeight) || 0;
     const tare = parseFloat(tareWeight) || 0;
     setNetWeight((gross - tare).toString());
   }, [grossWeight, tareWeight]);
-
 
 
 
@@ -415,21 +498,28 @@ const GenerateHealthReport = () => {
         <Navbar />
         <ScrollView contentContainerStyle={styles.scrollView}>
 
-          <View style={styles.HeadingContainer}>
-            <Text style={styles.title}> Generate Health Report</Text>
-
-          </View>
 
 
           {currentStep === 1 && (
             <View style={styles.onecontainers}>
-
+         
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={selectedValues.picker2}
-                    onValueChange={(value) => handleValueChange(value, 'picker2')}
-                    style={styles.picker}
+                    selectedValue={selectedCompany}
+                    onValueChange={(value) => {
+
+
+                      setSelectedCompany(value);
+                      setCompanyId(value);
+
+                      // ID ke corresponding text dhoondo
+                      const selectedCompanyObj = data2.find(item => item.value === value);
+                      if (selectedCompanyObj) {
+                        setSelectedCompanyName(selectedCompanyObj.text); // Alag state me store karo
+
+                      }
+                    }}
                   >
                     <Picker.Item label="Select Company" value="" />
                     {data2.map((item, idx) => (
@@ -439,13 +529,30 @@ const GenerateHealthReport = () => {
                 </View>
               </View>
 
+
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={selectedValues.picker3}
-                    onValueChange={(value) => handleValueChanges(value, 'picker3')}
+
+                    selectedValue={selectedbranchs} // Ensure ID is used for selection
+                    onValueChange={(value) => {
+                      setBranchId(String(value));
+
+                      const selectedBranch = destinationBranch.find(item => item.id === value);
+
+                      if (selectedBranch) {
+                        setSelectedbranch(selectedBranch.name);// Set full object instead of just name
+
+
+                      }
+
+
+                    }}
                     style={styles.picker}
+
+
                   >
+
                     <Picker.Item label="Select Branch" value="" />
                     {destinationBranch.map((item, idx) => (
                       <Picker.Item key={idx} label={item.name} value={item.id} /> // yaha value ko id set kiya hai
@@ -455,21 +562,32 @@ const GenerateHealthReport = () => {
 
               </View>
 
+
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={selectedValues.picker5}
-
-
                     style={styles.picker}
+                    onValueChange={(value) => {
+
+
+                      // ID ke corresponding text dhoondo
+                      const selectedText = destinationDistrict.find(item => item.value === value)?.text || "Not Selected";
+
+                      setSelecteddistrict(selectedText); // Text ko store karo
+                      console.log('Selected District:', selectedText);
+                    }}
+                    selectedValue={selectedDistrict} // Ab text store ho raha hai
                   >
                     <Picker.Item label="Select District location" value="" />
                     {destinationDistrict.map((item, idx) => (
-                      <Picker.Item key={idx} label={item.text} value={item.text} />
+                      <Picker.Item key={idx} label={item.text} value={item.value} />
                     ))}
                   </Picker>
+
                 </View>
               </View>
+
+
 
 
               <View style={styles.buttoncontent}>
@@ -485,11 +603,6 @@ const GenerateHealthReport = () => {
 
           {currentStep === 2 && (
             <View style={styles.secondcontainers}>
-
-
-
-
-
 
               <TextInput
                 maxLength={12}
@@ -522,21 +635,44 @@ const GenerateHealthReport = () => {
 
                 keyboardType="numeric"
               />
-              <TextInput
-                style={styles.input}
-                placeholder="Truck Number"
-                value={selectedDate ? selectedDate.toLocaleDateString() : ''}
-                onFocus={() => setShowDatePicker(true)} // Trigger date picker on input click
-              />
-              {/* Date Picker */}
-              {showDatePicker && (
+
+
+
+              {isDatePickerVisible && (
                 <DateTimePicker
-                  value={selectedDate}
+                  value={date ? new Date(date) : new Date()}
                   mode="date"
+                  onChange={(event, selectedDate) => handleConfirm(selectedDate, "date")}
                   display="default"
-                  onChange={onChangeDate}
                 />
               )}
+
+              {isTimePickerVisible && (
+                <DateTimePicker
+                  value={new Date()} // Default value current time
+                  mode="time"
+                  onChange={(event, selectedTime) => handleConfirm(selectedTime, "time")}
+                  display="default"
+                />
+              )}
+
+
+              <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    editable={false} // User manually edit nahi kar sakta
+                    value={
+                      date
+                        ? `${new Date(date).toLocaleDateString()} ${time ? new Date(time).toLocaleTimeString() : ""}`
+                        : "Select Date & Time"
+                    }
+                  />
+                </View>
+              </TouchableOpacity>
+
+
+
 
               <TextInput
                 style={styles.input}
@@ -570,6 +706,11 @@ const GenerateHealthReport = () => {
                   <Text style={styles.buttonText}>Previous</Text>
                 </TouchableOpacity>
 
+                {/* 
+                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity> */}
+
               </View>
 
 
@@ -594,7 +735,7 @@ const GenerateHealthReport = () => {
                       setStainingColour(value);
                       if (!value) setStainingColourPercent('');
                     }}
-                    trackColor={{ false: '#767577', true: 'red' }} // Red track when ON
+                    trackColor={{ false: '#F6A00191', true: '#FF9500' }} // Red track when ON
                     thumbColor={stainingColour ? 'white' : '#f4f3f4'} // White thumb when ON
                   />
                 </View>
@@ -616,12 +757,14 @@ const GenerateHealthReport = () => {
                       setBlackSmutOnion(value);
                       if (!value) setBlackSmatPercent('');
                     }}
+                    trackColor={{ false: '#F6A00191', true: '#FF9500' }} // Red track when ON
+                    thumbColor={stainingColour ? 'white' : '#f4f3f4'} // White thumb when ON
                   />
                 </View>
                 {blackSmutOnion && (
                   <TextInput
                     style={styles.input}
-                    placeholder="Black Smat Percent"
+                    placeholder="Black Smut Percent"
                     value={BlackSmutPercent}
                     onChangeText={(text) => setBlackSmatPercent(text)}
                     keyboardType="numeric"
@@ -637,6 +780,8 @@ const GenerateHealthReport = () => {
                       setSproutedOnion(value);
                       if (!value) setSproutedPercent('');
                     }}
+                    trackColor={{ false: '#F6A00191', true: '#FF9500' }} // Red track when ON
+                    thumbColor={stainingColour ? 'white' : '#f4f3f4'} // White thumb when ON
                   />
                 </View>
                 {sproutedOnion && (
@@ -657,6 +802,8 @@ const GenerateHealthReport = () => {
                       setSpoiledOnion(value);
                       if (!value) setSpoiledPercent('');
                     }}
+                    trackColor={{ false: '#F6A00191', true: '#FF9500' }} // Red track when ON
+                    thumbColor={stainingColour ? 'white' : '#f4f3f4'} // White thumb when ON
                   />
                 </View>
                 {spoiledOnion && (
@@ -675,7 +822,14 @@ const GenerateHealthReport = () => {
                   <View style={styles.pickerWrapper}>
                     <Picker
                       selectedValue={onionSkin}
-                      onValueChange={(itemValue) => setOnionSkin(itemValue)}
+                      onValueChange={(itemValue) => {
+                        setOnionSkin(itemValue);
+                        if (itemValue === "DOUBLE") {
+                          setOnionSkinPercent("0"); // DOUBLE select hone par value 0 set karo
+                        } else {
+                          setOnionSkinPercent(""); // SINGLE ke liye input blank rakho
+                        }
+                      }}
                       style={styles.picker}
                     >
                       <Picker.Item label="DOUBLE" value="DOUBLE" />
@@ -683,13 +837,17 @@ const GenerateHealthReport = () => {
                     </Picker>
                   </View>
                 </View>
+
                 <TextInput
                   style={styles.input}
                   placeholder="Onion Skin Percent"
                   value={onionSkinPercent}
                   onChangeText={setOnionSkinPercent}
                   keyboardType="numeric"
+                  editable={onionSkin === "SINGLE"} // SINGLE hone par editable, DOUBLE hone par non-editable
                 />
+
+
 
                 {/* Moisture Dropdown */}
                 <View style={styles.dropdownContainer}>
@@ -697,7 +855,14 @@ const GenerateHealthReport = () => {
                   <View style={styles.pickerWrapper}>
                     <Picker
                       selectedValue={moisture}
-                      onValueChange={(itemValue) => setMoisture(itemValue)}
+                      onValueChange={(itemValue) => {
+                        setMoisture(itemValue);
+                        if (itemValue === "DRY") {
+                          setMoisturePercent("0"); // DRY select hone par 0 set karo
+                        } else {
+                          setMoisturePercent(""); // WET hone par blank input allow karo
+                        }
+                      }}
                       style={styles.picker}
                     >
                       <Picker.Item label="DRY" value="DRY" />
@@ -705,89 +870,138 @@ const GenerateHealthReport = () => {
                     </Picker>
                   </View>
                 </View>
+
                 <TextInput
                   style={styles.input}
                   placeholder="Moisture Percent"
                   value={moisturePercent}
                   onChangeText={setMoisturePercent}
                   keyboardType="numeric"
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="FPC Person Name"
-                  value={fpcPersonName}
-                  onChangeText={setFpcPersonName}
+                  editable={moisture === "WET"} // Sirf WET hone par editable hoga
                 />
 
 
-                <View>
 
-                  <Text style={styles.text}>Spoiled</Text>
+                <Text style={styles.text}>Spoiled</Text>
 
-                  <Switch
-                    value={isSpoiledPercentVisible}
-                    onValueChange={setIsSpoiledPercentVisible}
-                  />
+                <Switch
+                  value={isSpoiledPercentVisible}
+                  onValueChange={setIsSpoiledPercentVisible}
+                />
 
-                  {isSpoiledPercentVisible && (
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Spoiled Percent"
-                      value={SpoliedPercent}
-                      onChangeText={setSpoliedPercent}
-                      keyboardType="numeric"
-                    />
-                  )}
-
+                {isSpoiledPercentVisible && (
                   <TextInput
                     style={styles.input}
-                    placeholder="Branch Person name"
-                    value={SpoliedBranch}
-                    onChangeText={setSpoliedBranch}
+                    placeholder="Spoiled Percent"
+                    value={SpoliedPercent}
+                    onChangeText={setSpoliedPercent}
                     keyboardType="numeric"
                   />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Type Comments"
-                    value={SpoliedComment}
-                    onChangeText={setSpoliedComment}
-                  />
+                )}
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Type Comments"
+                  value={SpoliedComment}
+                  onChangeText={setSpoliedComment}
+                />
+
+
+                <TextInput
+                  style={styles.input}
+                  placeholder="Branch Person name"
+                  value={SpoliedBranch}
+                  onChangeText={setSpoliedBranch}
+
+                />
+
+
+                <View style={styles.buttoncontent} >
+                  <TouchableOpacity style={styles.button} onPress={() => handleNext(currentStep + 1)}>
+                    <Text style={styles.buttonText}>Next</Text>
+                  </TouchableOpacity>
+
+
+                  <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+                    <Text style={styles.buttonText}>Previous</Text>
+                  </TouchableOpacity>
 
                 </View>
+
+
               </View>
 
-              <View style={styles.buttoncontent} >
-
-
-                <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
-                  <MaterialIcons name="camera" size={30} color="white" />
-                </TouchableOpacity>
-
-                {imageUri.length > 0 &&
-                  imageUri.map((img, index) => (
-                    <Image key={index} source={{ uri: img.uri }} style={styles.image} />
-                  ))}
 
 
 
-                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>Submit</Text>
-                </TouchableOpacity>
 
-                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>Previous</Text>
-                </TouchableOpacity>
 
-              </View>
             </View>
           )}
 
 
+          {currentStep === 4 && (
+            <View>
+              <View style={styles.centerContainer}>
+                <Text style={styles.title}>Capture Image</Text>
+              </View>
+
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
+                  <MaterialIcons name="camera" size={30} color="white" />
+                  <Text style={styles.buttonText}>Pick from Camera</Text>
+                </TouchableOpacity>
+
+
+
+              </View>
+
+
+
+
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={openGallery}>
+                  <MaterialIcons name="photo-library" size={30} color="white" />
+                  <Text style={styles.buttonText}>Pick from Gallery</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+                  <Text style={styles.buttonText}>Previous</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Image Grid */}
+              <View style={styles.imageGrid}>
+                {imageUri.map((img, index) => (
+                  <View key={index} style={styles.imageContainer}>
+                    <Image source={{ uri: img.uri }} style={styles.image} />
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
         </ScrollView>
-        <Footer />
+
+
+
+
 
       </SafeAreaView>
+      <Footer />
+
+
+
+
     </KeyboardAvoidingView>
+
+
   );
 };
 

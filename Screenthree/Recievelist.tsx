@@ -93,8 +93,7 @@ const styles = StyleSheet.create({
   dispatchbranchContainer: {
     backgroundColor: '#FF9500',
     padding: 10,
-    borderBottomWidth: 5,
-    borderBottomColor: '#f6a001',
+    
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     flexDirection: "row",
