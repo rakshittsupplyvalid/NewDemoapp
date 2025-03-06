@@ -12,6 +12,8 @@ export type RootStackParamList = {
     DispatchDrawernavigator: undefined;
     RecieveDrawernavigator: undefined;
     HealthReportselect: undefined;
+    ReimbursementForm: undefined;
+    ReimbursementList: { ApprovalStatus: string; BillPaymentStatus?: string };
     
     DispatchRecieve :  { quantitymt: string };
     Dashboard : undefined;

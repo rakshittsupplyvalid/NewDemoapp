@@ -1,16 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import { SafeAreaView, View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Navbar from '../App/Navbar';
 import api from '../service/api/apiInterceptors';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { RootStackParamList } from '../types/Type';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Footer from '../App/Footer';
+import TruckCard from './TruckCard';
 
 const RecieveDhasboard = () => {
   const [dispatchCount, setDispatchCount] = useState<number | null>(null);
   const [recieveCount, setRecieveCount] = useState<number | null>(null);
+  const[RequestRempending,setRequestRempending]=useState<number | null>(null);
+  const[PaymentPaid,setPaymentPaid]=useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -22,9 +24,27 @@ const RecieveDhasboard = () => {
     try {
       const dispatchResponse = await api.get('/api/dispatch/truckcount/total?DispatchStatus=DISPATCHED');
       setDispatchCount(dispatchResponse.data);
+     
 
       const recieveResponse = await api.get('/api/dispatch/truckcount/total?DispatchStatus=RECEIVED');
       setRecieveCount(recieveResponse.data);
+     
+
+
+      const RequestRempending = await api.get('/api/reimbursment/count?ApprovalStatus=PENDING');
+      setRequestRempending(RequestRempending.data);
+      console.log('Recixvgxeve',RequestRempending.data);
+
+       
+      const PaymentPaid = await api.get('/api/reimbursment/count?BillPaymentStatus=PAID&ApprovalStatus=APPROVED');
+      setPaymentPaid(PaymentPaid.data);
+
+
+
+
+
+
+      
 
       setError(null);
     } catch (err) {
@@ -53,70 +73,76 @@ const RecieveDhasboard = () => {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
           <View style={styles.cardContainer}>
-            {/* Dispatch Truck */}
-            <TouchableOpacity
-              style={[styles.card, styles.dispatchCard]}
-              onPress={() => navigation.navigate("Receive Truck List")}
-            >
-              {/* Top Right Corner */}
-              <View style={styles.topRightCorner} />
-
-
-              <Text style={styles.cardTitle}> Receiving Pending Truck </Text>
-              <View style={{ backgroundColor: "#F79B0099", padding: 10, borderRadius: 50 }}>
-                <MaterialIcons name="local-shipping" size={40} color="white" />
-              </View>
-              <View>
-
-              </View>
-              {loading ? (
-                <ActivityIndicator size="small" color="#000000" />
-              ) : error ? (
-                <Text style={styles.errorText}>{error}</Text>
-              ) : (
-                <Text style={styles.cardDescription}>Count {dispatchCount}</Text>
-              )}
-
-              {/* Bottom Left Corner */}
-              <View style={styles.bottomLeftCorner} />
-            </TouchableOpacity>
-
-
-
-            <TouchableOpacity
-              style={[styles.card, styles.dispatchCard]}
+          <View  style={{ width: '50%', padding: 3 }}>
+            <TruckCard
+              title="Receiving Pending Truck"
+              count={dispatchCount}
+              loading={loading}
+              error={error}
+              iconName="local-shipping"
               onPress={() => navigation.navigate("Dispatch Truck List")}
-            >
-              {/* Top Right Corner */}
-              <View style={styles.topRightCorner} />
+
+            />
+            </View>
+            <View  style={{ width: '50%', padding: 3 }}>
+            <TruckCard
+              title="Received Truck"
+              count={recieveCount}
+              loading={loading}
+              error={error}
+              iconName="directions-bus"
+              onPress={() => navigation.navigate("Receive Truck List")}
+            />
+            </View>
+
+            <View  style={{ width: '50%', padding: 3 }}>
+             <TruckCard
+              title="Request Reimburesment Pending"
+              count={RequestRempending}
+              loading={loading}
+              error={error}
+              iconName="hourglass-empty"
+              onPress={() => navigation.navigate("ReimbursementList", { 
+                ApprovalStatus: "PENDING" 
+              })}
+            />
+                </View>
 
 
-              <Text style={styles.cardTitle}>Received Truck</Text>
-              <View style={{ backgroundColor: "#F79B0099", padding: 10, borderRadius: 50 }}>
-                <MaterialIcons name="directions-bus" size={40} color="white" />
-              </View>
-              <View>
-
-              </View>
-              {loading ? (
-                <ActivityIndicator size="small" color="#000000" />
-              ) : error ? (
-                <Text style={styles.errorText}>{error}</Text>
-              ) : (
-                <Text style={styles.cardDescription}>Count {recieveCount}</Text>
-              )}
-
-              {/* Bottom Left Corner */}
-              <View style={styles.bottomLeftCorner} />
-            </TouchableOpacity>
+                <View  style={{ width: '50%', padding: 3 }}>
+             <TruckCard
+              title="Payment Paid"
+              count={PaymentPaid}
+              loading={loading}
+              error={error}
+              iconName="done"
+            
+              onPress={() => navigation.navigate("ReimbursementList", { 
+                BillPaymentStatus: "PAID", 
+                ApprovalStatus: "APPROVED"
+              })}
+            />
+                </View>
 
 
-
+                <View  style={{ width: '50%', padding: 3 }}>  
+                 <TruckCard
+                  title="Payment decline"
+              count={PaymentPaid}
+              loading={loading}
+              error={error}
+              iconName="cancel"
+            
+              onPress={() => navigation.navigate("ReimbursementList", { 
+                BillPaymentStatus: "DECLINE", 
+                ApprovalStatus: "APPROVED"
+                  })}
+                  />
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
       <Footer />
-
     </View>
   );
 };
@@ -136,74 +162,12 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 25,
+    flexWrap: 'wrap', // Allows wrapping to next row
+    justifyContent: 'space-between', // Space between items
+   
+    paddingHorizontal: 10,
   },
-  card: {
-    flex: 1,
-    padding: 25,
-    margin: 10,
-    borderRadius: 15,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
-    height: 180,
-    justifyContent: 'center',
-    position: 'relative', // Corners ke liye relative position zaroori hai
-  },
-  dispatchCard: {
-    backgroundColor: 'white',
-    height: '65%'
-  },
-  receiveCard: {
-    backgroundColor: 'white',
-  },
-  cardTitle: {
-    fontSize: 17,
-
-    color: 'black',
-    marginTop: 10,
-    width: 150,
-    textAlign: 'center',
-  },
-  cardDescription: {
-    fontSize: 16,
-    color: 'black',
-    marginTop: 5,
-    textAlign: 'center',
-  },
-  errorText: {
-    fontSize: 14,
-    color: 'red',
-    marginTop: 5,
-    textAlign: 'center',
-  },
-
-  // Top Right Corner
-  topRightCorner: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 25,
-    height: 25,
-    backgroundColor: '#F79B0099', // Orange color
-    borderTopRightRadius: 10,
-  },
-
-  // Bottom Left Corner
-  bottomLeftCorner: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: 25,
-    height: 25,
-    backgroundColor: '#F79B0099', // Orange color
-    borderBottomLeftRadius: 10,
-  },
+  
 });
-
 
 export default RecieveDhasboard;

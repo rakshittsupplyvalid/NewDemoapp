@@ -18,8 +18,11 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImageViewing from "react-native-image-viewing";
 import { format, isWithinInterval } from 'date-fns';
 import moment from "moment";
+import { Button } from 'react-native-elements';
 
 const HealthReportlist = () => {
+  const [profileData, setProfileData] = useState(null);
+const [userId, setUserId] = useState(""); // Store user ID
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,41 +35,66 @@ const HealthReportlist = () => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
-  const pageSize = 10;
+  const pageSize = 3;
   const [hasMoreData, setHasMoreData] = useState(true);
 
-  useEffect(() => {
-    fetchReports(true);
-  }, []);
 
-  const fetchReports = async (isInitialLoad = false) => {
-    if (!hasMoreData || loading) return;
-    setLoading(true);
 
-    try {
-      const response = await api.get(
-        `/api/healthreport?ReportType=RECEIVE&PageNumber=${pageNumber}&PageSize=${pageSize}&ApprovalStatus=PENDING`
-      );
 
-      const newReports = response.data || [];
+const fetchProfile = async (): Promise<void> => {
+  try {
+    const response = await api.get("/api/user/profile");
+    setProfileData(response.data);
+    setUserId(response.data.id); // Assuming ID field is 'id'
+ 
+  } catch (err) {
+    console.error("Error fetching profile data:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
-      if (isInitialLoad) {
-        setReports(newReports);
-      } else {
-        setReports((prevReports) => [...prevReports, ...newReports]);
-      }
 
-      if (newReports.length < pageSize) {
-        setHasMoreData(false);
-      } else {
-        setPageNumber((prevPage) => prevPage + 1);
-      }
-    } catch (error) {
-      console.error("Error fetching health reports:", error);
+const fetchReports = async (isInitialLoad = false) => {
+  if (!hasMoreData || loading || !userId) return; // Ensure userId is available
+  setLoading(true);
+
+  try {
+    const response = await api.get(
+      `/api/healthreport?ReportType=RECEIVE&PageNumber=${pageNumber}&PageSize=${pageSize}&AssayerId=${userId}`
+    );
+
+    const newReports = response.data || [];
+
+    if (isInitialLoad) {
+      setReports(newReports);
+    } else {
+      setReports((prevReports) => [...prevReports, ...newReports]);
     }
 
-    setLoading(false);
-  };
+    if (newReports.length < pageSize) {
+      setHasMoreData(false);
+    } else {
+      setPageNumber((prevPage) => prevPage + 1);
+    }
+  } catch (error) {
+    console.error("Error fetching health reports:", error);
+  }
+
+  setLoading(false);
+};
+
+useEffect(() => {
+  fetchProfile();
+}, []);
+
+
+useEffect(() => {
+  if (userId) {
+    fetchReports(true); // Fetch reports after userId is set
+  }
+}, [userId]);
+
 
   useEffect(() => {
     let filteredData = reports;
@@ -148,6 +176,7 @@ const HealthReportlist = () => {
 
       <FlatList
         data={filteredReports}
+        
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.one}>
@@ -181,28 +210,22 @@ const HealthReportlist = () => {
         ListFooterComponent={loading ? <ActivityIndicator size="large" color="red" /> : null}
       />
 
+{hasMoreData && (
+        <Button title="Load More" onPress={() => fetchReports(false)} />
+      )}
+     
+
          {/* Modal for Report Details */}
          <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
           <View style={styles.heading}>
-            <Text style={styles.text} >Recieve Health Report Details</Text>
+            <Text style={styles.text} >Recieve Health Report Dedjhtails</Text>
           </View>
           <View style={styles.modalContent}>
 
             {selectedReport && (
               <>
-                <View style={styles.rowone}>
-                  <Text style={styles.labelone}>Assayerduhd Name:</Text>
-                  <Text style={styles.valueone}>{selectedReport.assayername}</Text>
-                </View>
-
-
-                <View style={styles.rowone}>
-                  <Text style={styles.labelone}>id</Text>
-                  <Text style={styles.valueone}>{selectedReport.id}</Text>
-                </View>
-
-                <View style={styles.rowone}>
+               <View style={styles.rowone}>
                   <Text style={styles.labelone}>Truck Number:</Text>
                   <Text style={styles.valueone}>{selectedReport.trucknumber}</Text>
                 </View>
@@ -226,14 +249,14 @@ const HealthReportlist = () => {
                   const parsedData = JSON.parse(selectedReport.datastring);
                   return (
                     <>
-                      <View style={styles.rowone}>
+                      {/* <View style={styles.rowone}>
                         <Text style={styles.labelone}>Destination Branch:</Text>
                         <Text style={styles.valueone}>{parsedData.CNAName}duti</Text>
                       </View>
                       <View style={styles.rowone}>
                         <Text style={styles.labelone}>Storage Name:</Text>
                         <Text style={styles.valueone}>{parsedData.StorageName}</Text>
-                      </View>
+                      </View> */}
                       <View style={styles.rowone}>
                         <Text style={styles.labelone}>Gross Weight:</Text>
                         <Text style={styles.valueone}>{parsedData.GrossWeight}</Text>
@@ -338,7 +361,7 @@ const styles = StyleSheet.create({
 
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)', // Dark Transparent Overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Dark Transparent Overlay
     justifyContent: 'center',
     alignItems: 'center',
 

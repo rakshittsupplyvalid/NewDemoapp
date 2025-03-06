@@ -71,6 +71,7 @@ const GenerateHealthReport = () => {
   const [time, setTime] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const [BlackSmutPercent, setBlackSmatPercent] = useState('');
   const [sproutedOnion, setSproutedOnion] = useState(false);
@@ -142,33 +143,37 @@ const GenerateHealthReport = () => {
     );
   };
 
-  const openGallery = () => {
-    const options: ImageLibraryOptions = {
-      mediaType: 'photo', // Only allow photos
-      includeBase64: false, // Don't include base64 data
-      quality: 0.8, // Image quality (0 to 1)
-    };
+  // const openGallery = () => {
+  //   const options: ImageLibraryOptions = {
+  //     mediaType: 'photo', // Only allow photos
+  //     includeBase64: false, // Don't include base64 data
+  //     quality: 0.8, // Image quality (0 to 1)
+  //   };
 
-    launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.errorMessage) {
-        console.log('ImagePicker Error: ', response.errorMessage);
-      } else if (response.assets && response.assets.length > 0) {
-        const selectedImage = response.assets[0];
+  //   launchImageLibrary(options, (response) => {
+  //     if (response.didCancel) {
+  //       console.log('User cancelled image picker');
+  //     } else if (response.errorMessage) {
+  //       console.log('ImagePicker Error: ', response.errorMessage);
+  //     } else if (response.assets && response.assets.length > 0) {
+  //       const selectedImage = response.assets[0];
 
-        console.log('Selected image URI:', selectedImage.uri); // Debugging
+  //       console.log('Selected image URI:', selectedImage.uri); // Debugging
 
-        const image = {
-          uri: selectedImage.uri ?? '',
-          fileName: selectedImage.fileName || `photo_${Date.now()}.jpg`,
-          type: selectedImage.type || 'image/jpeg',
-        };
+  //       const image = {
+  //         uri: selectedImage.uri ?? '',
+  //         fileName: selectedImage.fileName || `photo_${Date.now()}.jpg`,
+  //         type: selectedImage.type || 'image/jpeg',
+  //       };
 
-        setImageUri((prevImages) => [...prevImages, image]); // Add the new image to the state
-      }
-    });
-  };
+  //       setImageUri((prevImages) => [...prevImages, image]); // Add the new image to the state
+  //     }
+  //   });
+  // };
+  const today = new Date();
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(today.getMonth() - 3);
+
   const handleNext = (nextStep: number) => {
     const truckNumberRegex = /^[A-Z]{2}\d{2}[A-Z]{2}\d{4}$/;
 
@@ -228,10 +233,10 @@ const GenerateHealthReport = () => {
         Alert.alert("Validation error", "Type Comments is required!");
         return;
       }
-          if (!imageUri || imageUri.length === 3) {
-            alert('Please upload at least three image.');
-       return;
-          }
+      if (!imageUri || imageUri.length === 3) {
+        alert('Please upload at least three image.');
+        return;
+      }
 
     }
 
@@ -241,9 +246,9 @@ const GenerateHealthReport = () => {
 
   };
 
-  const handlePrevious = (               
+  const handlePrevious = (
 
-    
+
   ) => {
     if (previousSteps.length > 0) {
       const lastStep = previousSteps[previousSteps.length - 1]; // Get the last step
@@ -270,32 +275,82 @@ const GenerateHealthReport = () => {
         setTimePickerVisibility(true);
       } else if (type === "time") {
         const formattedTime = moment(selectedDate).format("HH:mm:ss"); // 🔹 Local time liya
-  
+
         setDate((prevDate) => {
           const dateTime = `${prevDate} ${formattedTime}`;
           console.log("Formatted Date & Time:", dateTime);
           return dateTime;
         });
-  
+
         setTimePickerVisibility(false);
       }
     }
   };
-  
+
+
+  useEffect(() => {
+    if (truckNumber.length >= 6) {
+      fetchHealthReport(truckNumber);
+    }
+  }, [truckNumber]);
+
+  const fetchHealthReport = async (trucknumber: any) => {
+    try {
+      const response = await api.get(
+        `/api/healthreport?TruckNumber=${trucknumber}&ReportType=DISPATCH`
+      );
+
+      console.log("API Response:", response.data);
+
+      // Assuming response.data contains an array of reports
+      if (response.data && response.data.length > 0) {
+        const reportId = response.data[0].id; // Pehla report ka ID le rahe hain
+        fetchReportDetails(reportId); // ID pass karke details fetch kar rahe hain
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+    }
+  };
+
+  const fetchReportDetails = async (id: any) => {
+    try {
+      const response = await api.get(`/api/healthreport/${id}`);
+      setSelectedReport(response.data);
+      console.log("Report details:", response.data);
+      if (response.data && response.data.datastring) {
+        const parsedData = JSON.parse(response.data.datastring);
+        setGrossWeight(parsedData.GrossWeight.toString());
+        setTareWeight(parsedData.TareWeight.toString());
+        setBagCount(parsedData.BagCount.toString());
+        setSize(parsedData.Size.toString());
+        setSpoiledOnion(parsedData.SpoiledOnion);
+        setSpoiledPercent(parsedData.SpoiledPercent ? parsedData.SpoiledPercent.toString() : '0');
+        setSproutedOnion(parsedData.SproutedOnion);
+        setSproutedPercent(parsedData.SproutedPercent ? parsedData.SproutedPercent.toString() : '0');
+        setBlackSmutOnion(parsedData.BlackSmutOnion);
+        setBlackSmatPercent(parsedData.BlackSmutPercent ? parsedData.BlackSmutPercent.toString() : '0');
+        setStainingColour(parsedData.StainingColour);
+        setStainingColourPercent(parsedData.StainingColourPercent ? parsedData.StainingColourPercent.toString() : '0');
+        setOnionSkin(parsedData.OnionSkin);
+        setOnionSkinPercent(parsedData.OnionSkinPercent ? parsedData.OnionSkinPercent.toString() : '0');
+        setMoisture(parsedData.Moisture);
+        setMoisturePercent(parsedData.MoisturePercent ? parsedData.MoisturePercent.toString() : '0');
+
+
+
+      }
+    } catch (error) {
+      console.error("Error fetching report details:", error);
+    }
+  };
+
 
 
 
   const handleSubmit = async () => {
 
-
-
-
-
     const formData = new FormData();
-
-
-
-    formData.append("CNAname", selectedCompanyName)
+    formData.append("CNAName", selectedCompanyName)
     console.log('selectedCompanyName:', selectedCompanyName);
 
     formData.append("DestinationBranch", selectedbranchs);
@@ -345,7 +400,13 @@ const GenerateHealthReport = () => {
           name: image.fileName || 'image.jpg',
           type: image.type || 'image/jpeg',
         } as any);
+
+
+
+
       });
+
+
     }
 
     try {
@@ -396,9 +457,6 @@ const GenerateHealthReport = () => {
     }
   };
 
-
-
-
   useEffect(() => {
     fetchData2();
   }, []);
@@ -409,16 +467,9 @@ const GenerateHealthReport = () => {
   }, [companyId]);
 
 
-
-
-
-
-
   useEffect(() => {
     console.log('Updated Destination District:', destinationDistrict);
   }, [destinationDistrict]);
-
-
 
 
   const fetchData2 = async () => {
@@ -502,7 +553,8 @@ const GenerateHealthReport = () => {
 
           {currentStep === 1 && (
             <View style={styles.onecontainers}>
-         
+
+
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
@@ -613,6 +665,7 @@ const GenerateHealthReport = () => {
                 onChangeText={(text) => setTruckNumber(text.toUpperCase())}
               />
 
+
               <TextInput
                 style={styles.input}
                 placeholder="Gross Weight(KG)"
@@ -644,6 +697,8 @@ const GenerateHealthReport = () => {
                   mode="date"
                   onChange={(event, selectedDate) => handleConfirm(selectedDate, "date")}
                   display="default"
+                  minimumDate={threeMonthsAgo} // Set minimum date to 3 months ago
+                  maximumDate={today} // Set maximum date to today
                 />
               )}
 
@@ -959,12 +1014,12 @@ const GenerateHealthReport = () => {
 
 
 
-              <View style={styles.buttoncontent}>
+              {/* <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={openGallery}>
                   <MaterialIcons name="photo-library" size={30} color="white" />
                   <Text style={styles.buttonText}>Pick from Gallery</Text>
                 </TouchableOpacity>
-              </View>
+              </View> */}
 
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>

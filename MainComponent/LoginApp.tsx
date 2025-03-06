@@ -70,8 +70,15 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       </View>
       <View style={styles.logoContainer}>
         <Image source={require('../assets/logo.png')} style={styles.logo} />
-        <Text style={styles.logoText}>Login Your Account</Text>
-      </View>
+        <View  style={styles.TextContainer}>
+
+     
+<Text style={styles.logoText}>Login into Your Account</Text>
+<Text  style={styles.logoTextinner}>See what is going on with your business</Text>
+</View>
+    
+   </View>
+ 
 
       <ImageBackground
         source={require('../assets/Ellipse8.png')}
@@ -104,7 +111,16 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
+        
+        <View style={{ alignItems: 'flex-end', width: '100%', paddingHorizontal: 20 }}>
+  <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
+    <Text style={styles.footerText}>Forget Password</Text>
+  </TouchableOpacity>
+</View>
+
+
       </ImageBackground>
+
 
       <View style={styles.view}>
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
@@ -112,9 +128,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 
         </TouchableOpacity >
 
-        <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
-          <Text style={styles.footerText}>Forget Password</Text>
-        </TouchableOpacity>
+       
       </View>
 
       {/* Conditionally render the image when keyboard is not visible */}
@@ -157,17 +171,38 @@ const styles = StyleSheet.create({
     marginBottom: -50,
     marginLeft: -170,
   },
+  
   logo: {
     width: screenWidth * 0.5,
     height: screenWidth * 0.2,
     resizeMode: 'contain',
+
   },
+  TextContainer: {
+    width: screenWidth * 0.9,
+    height: screenWidth * 0.2,
+  
+       paddingLeft : 90,
+     
+        position : 'relative',
+        top : 30,
+ 
+
+ 
+  },  
   logoText: {
-    fontSize: 21,
-    fontWeight: 'bold',
+    fontSize: 20,
+
     color: '#333',
-    marginTop: 20,
-    marginLeft: 50,
+  
+  },
+  logoTextinner: {
+    fontSize: 15,
+
+    color: '#333',
+ 
+ 
+  
   },
 
   inputContainer: {
@@ -176,7 +211,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F6A001',
     borderRadius: 28,
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
     marginVertical: 10,
     width: '100%',
     backgroundColor: '#ffffff',
@@ -217,7 +252,7 @@ const styles = StyleSheet.create({
 
   footerText: {
     marginTop: 15,
-    color: '#888',
+    color: 'red',
     fontSize: 14,
   },
 
@@ -230,11 +265,14 @@ const styles = StyleSheet.create({
 
   photobottomtcontainer: {
     position: 'absolute',
-    bottom: 1,
-    left: '50%',
-    transform: [{ translateX: -42 }],
-    width: 60,
-    height: 60,
+    bottom: 0,
+    left: 0,
+    width: 25,
+    height: 25,
+    backgroundColor: '#F79B0099', // Orange color
+    borderBottomLeftRadius: 10,
+
+  
   },
 
   inputBackground: {

@@ -1,9 +1,10 @@
 import { mmkvStorage } from "../service/storage";
-import { Href, useRouter } from "expo-router";  // Removed generic
+import { Href, useRouter } from "expo-router";  
 import { useLocalSearchParams } from "expo-router";
 // import * as Haptics from 'expo-haptics';
 
-export const resetAndNavigate = (newPath: Href) => {  // No need for generic here
+export const resetAndNavigate = (newPath: Href) => {  
+
     const router = useRouter();  
     if (router.canGoBack()) {
         router.dismissAll();
@@ -16,12 +17,7 @@ export const backScreen = () => {
     router.back();
 };
 
-export const navigateToScreen = (newPath: string, queryParams: Record<string, string> = {}) => {
-    const router = useRouter();  // Ensure useRouter() is used
-    const queryString = new URLSearchParams(queryParams).toString();
-    const finalPath = queryString ? `${newPath}?${queryString}` : newPath;
-    router.push(finalPath);
-};
+
 
 export const useQueryParams = () => {
     const params = useLocalSearchParams();
@@ -29,10 +25,3 @@ export const useQueryParams = () => {
 };
 
 
-
-// Helper function to clear user session
-const clearUserSession = async () => {
-    mmkvStorage.removeItem('token');
-    mmkvStorage.removeItem('userinfo');
-    console.log("User session cleared");
-};
