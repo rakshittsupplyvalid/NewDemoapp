@@ -53,7 +53,7 @@ const Recievelist = () => {
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>Date:</Text>
-                  <Text style={styles.value}>{item.dispatchdate}</Text>
+            <Text style={styles.value}>{new Date(item.dispatchdate).toLocaleDateString()}</Text>
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>Truck Number:</Text>
@@ -67,10 +67,7 @@ const Recievelist = () => {
                   <Text style={styles.label}>Dispatch Type:</Text>
                   <Text style={styles.value}>{item.dispatchtype}</Text>
                 </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>Status:</Text>
-                  <Text style={styles.value}>{item.dispatchstatus}</Text>
-                </View>
+               
               </View>
 
             </View>

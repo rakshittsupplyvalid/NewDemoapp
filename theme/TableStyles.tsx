@@ -18,7 +18,7 @@ export const tableStyles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        backgroundColor: '#6b7b8f',
+        backgroundColor: '#F6A00191',
         paddingVertical: 12,
         borderTopLeftRadius: 10,
         borderTopRightRadius: 10,
@@ -86,7 +86,54 @@ export const tableStyles = StyleSheet.create({
         marginTop: 20,
     },
     modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { backgroundColor: 'white', padding: 20, borderRadius: 10, width: 500, alignItems: 'center' },
+  modalContent: { backgroundColor: 'white', padding: 20, borderRadius: 10, width: 300, alignItems: 'center' },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   closeButton: { marginTop: 15, backgroundColor: 'red', padding: 10, borderRadius: 5 },
+  text: {
+    fontSize: 16,
+    color: 'black', // White text for better contrast
+    marginBottom: 5,
+    maxWidth: 350, // Responsive width
+   
+    padding: 8, // Padding to make text readable
+    borderRadius: 5, // Rounded corners
+    textAlign: 'center', // Center align text
+  },
+  amountText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#007bff',
+  },
+  totalAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#28a745',
+    marginTop: 5,
+  },
+  
+  modalView: {
+    width: '90%',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    elevation: 5, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+ 
+  image: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginVertical: 10,
+    backgroundColor : "red"
+  },
+  
+  closeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

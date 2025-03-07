@@ -22,6 +22,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import Navbar from '../App/Navbar';
 
 
 
@@ -189,7 +190,7 @@ const ReimbursementForm = () => {
       return false;
     }
 
-    setIsSubmitting(true);
+  
 
 
 
@@ -297,6 +298,8 @@ const ReimbursementForm = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+
+      <Navbar />
       <FlatList
         data={[{ key: 'form' }]} // Dummy data to render content
         keyExtractor={(item) => item.key}
@@ -517,7 +520,7 @@ const styles = StyleSheet.create({
     fontSize: 20,                          // Increase font size for a bold look
     marginTop: 20,                         // Increase margin-top to give more space
     fontWeight: '700',                      // Use a bolder font weight
-    color: '#3f4a59',                       // A deeper color for a more professional look
+    color: '#F79B00',                       // A deeper color for a more professional look
     marginBottom: 10,                       // Increase margin-bottom for more spacing between inputs
     letterSpacing: 1,                       // Add letter spacing for a clean, spacious look
     textTransform: 'uppercase',             // Make the label text uppercase for emphasis
@@ -530,8 +533,8 @@ const styles = StyleSheet.create({
 
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: '#F79B00',
+    borderRadius: 50,
     paddingVertical: 12,
     paddingHorizontal: 15,
     marginTop: 8,
@@ -545,18 +548,18 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: '#F79B00',
+    borderRadius: 50,
     marginTop: 8,
     backgroundColor: '#fff',
     paddingLeft: 12,
     paddingVertical: 10,
   },
   button: {
-    backgroundColor: '#6b7b8f', // vibrant yellow/orange
+    backgroundColor: '#F79B00', // vibrant yellow/orange
     paddingVertical: 12,
     paddingHorizontal: 30,
-    borderRadius: 8,
+    borderRadius: 50,
     marginTop: 20,
     alignItems: 'center',
     elevation: 5,
@@ -634,8 +637,8 @@ const styles = StyleSheet.create({
   pressable :{
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'grey', // background color for buttons
-    paddingVertical: 10,      // vertical padding to make the button taller
+    backgroundColor: 'grey',
+    paddingVertical: 10,      
     paddingHorizontal: 15,    // horizontal padding to create space around the text and icon
     borderRadius: 5,         // rounded corners for a smoother look
     marginHorizontal: 10,    // space between the buttons

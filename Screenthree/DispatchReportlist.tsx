@@ -60,12 +60,12 @@ const DispatchReportlist = () => {
                 <Text style={styles.value}>{item.assayername}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Date:</Text>
-                <Text style={styles.value}>{item.date}</Text>
+              <Text style={styles.label}>Date:</Text>
+              <Text style={styles.value}>{new Date(item.date).toLocaleDateString()}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Report Status:</Text>
-                <Text style={styles.value}>{item.approvalstatus}</Text>
+                <Text style={styles.label}>Truck Number</Text>
+                <Text style={styles.value}>{item.trucknumber}</Text>
               </View>
             </View>
           </View>

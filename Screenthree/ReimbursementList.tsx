@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, RefreshControl, TouchableOpacity , SafeAreaView , Modal } from 'react-native';
+import { View, Text, FlatList, TextInput, RefreshControl, TouchableOpacity , SafeAreaView , Modal, Image } from 'react-native';
 import api from '../service/api/apiInterceptors';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { tableStyles } from '../theme/TableStyles';
 import Navbar from '../App/Navbar';
-
+import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDate } from '../utils/dateUtils';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { ScrollView } from 'react-native-gesture-handler';
+import { HealthreportStyle } from '../theme/HealthreportStyle';
+
 
 
 interface TableData {
+  [x: string]: any;
   id: string;
   username: string;
   date: string;
@@ -20,12 +22,17 @@ interface TableData {
   purpose: string;
 }
 
-const ReimbursementList: React.FC = () => {
+interface Reimbursementprops {
+  navigation: StackNavigationProp<any>;
+}
+
+const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
   const [tableData, setTableData] = useState<TableData[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedReimbursement, setSelectedReimbursement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<TableData | null>(null);
+
   type RouteParams = {
     ApprovalStatus: string;
     BillPaymentStatus: string;
@@ -35,9 +42,15 @@ const ReimbursementList: React.FC = () => {
   const { ApprovalStatus, BillPaymentStatus } = route.params || {};
   const [refreshing, setRefreshing] = useState(false);
 
+ 
+
   useEffect(() => {
     fetchData();
   }, [BillPaymentStatus, ApprovalStatus]);
+
+
+  
+ 
 
   const fetchData = async () => {
     try {
@@ -67,6 +80,15 @@ const ReimbursementList: React.FC = () => {
     }
   };
 
+  const fetchReimbursementDetails = async (id: string) => {
+    try {
+      const response = await api.get(`/api/reimbursment/${id}`);
+      setSelectedReimbursement(response.data);
+      setModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching reimbursement details:", error);
+    }
+  };
 
 
   const filteredData = tableData
@@ -109,23 +131,23 @@ const ReimbursementList: React.FC = () => {
     <View
       style={[
         tableStyles.row,
-        { backgroundColor: index % 2 === 0 ? '#e6e7e8' : '#fff' },
+        { backgroundColor: index % 2 === 0 ? '#f2f0ed' : '#fff' },
       ]}
+
     >
+  
+  
       <Text style={tableStyles.cell}>{item.date}</Text>
       <Text style={tableStyles.cell}>{item.billtype.toUpperCase()}</Text>
       <Text style={tableStyles.cell}>{item.amount}</Text>
-      <TouchableOpacity  onPress={() => {
-          setSelectedItem(item);
-          setModalVisible(true);
-        }}>
-        <MaterialIcons
-          name="visibility"
-          size={25}
-          color="black"
-          style={{ position: 'relative', right: 20 }}
-        />
-      </TouchableOpacity>
+      <TouchableOpacity onPress={() => fetchReimbursementDetails(item.id)} >
+         
+            <MaterialIcons name="visibility" size={25} color="black" />
+          </TouchableOpacity>
+
+
+
+       
     </View>
   );
 
@@ -136,7 +158,7 @@ const ReimbursementList: React.FC = () => {
 
    <SafeAreaView> 
     <Navbar />
-    <ScrollView>
+  
     <View style={tableStyles.container}>
       
       <TextInput
@@ -158,16 +180,60 @@ const ReimbursementList: React.FC = () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={tableStyles.modalContainer}>
-          <View style={tableStyles.modalContent}>
-            <Text style={tableStyles.modalTitle}>Bill Details</Text>
-            {selectedItem && (
+        <View style={HealthreportStyle.modalContainer}>
+
+           <View style={HealthreportStyle.heading}>
+                      <Text style={HealthreportStyle.text} >Reimbursment List</Text>
+                    </View>
+          <View style={HealthreportStyle.modalContent}>
+ 
+            {selectedReimbursement&& (
               <>
-                <Text  style={tableStyles.headerCell}>Date {selectedItem.date}</Text>
-                <Text>Bill Type {selectedItem.billtype.toUpperCase()}</Text>
-                <Text>Amount {selectedItem.amount}</Text>
-                <Text>Purpose {selectedItem.purpose}</Text>
-                <Text>Total amount {selectedItem.amount}</Text>
+ <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>Date</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReimbursement.date}</Text>
+                </View>
+
+
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>Bill Type</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReimbursement.billtype.toUpperCase()}</Text>
+                </View>
+
+
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>Bill Type</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReimbursement.billtype.toUpperCase()}</Text>
+                </View>
+
+
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>Amount:</Text>
+                  <Text style={HealthreportStyle.valueone}>₹{selectedReimbursement.amount}</Text>
+                </View>
+
+
+
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>Purpose:</Text>
+                  <Text style={HealthreportStyle.valueone}>₹{selectedReimbursement.purpose}</Text>
+                </View>
+                
+                
+
+                
+
+      
+      
+
+      {selectedReimbursement.images && selectedReimbursement.images.length > 0 && (
+          <Image 
+            source={{ uri: `https://dev-backend-2024.epravaha.com${selectedReimbursement.images[0]}` }}
+            style={tableStyles.image}
+          />
+        )}
+      
+
               </>
             )}
             <TouchableOpacity
@@ -180,17 +246,15 @@ const ReimbursementList: React.FC = () => {
         </View>
       </Modal>
 
-     
-    </View>
-    </ScrollView>
-
-    <FlatList
+      <FlatList
         data={filteredData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         ListEmptyComponent={<Text style={tableStyles.emptyText}>No data available</Text>}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       />
+    </View>
+  
     </SafeAreaView>
   );
 };

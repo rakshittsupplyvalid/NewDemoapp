@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginApp from '../MainComponent/LoginApp';
-import TruckCard from '../Screenthree/TruckCard';
+import Federation from '../MainComponent/Federation';
+
 
 
 
@@ -39,6 +40,9 @@ export default function StackNavigator() {
 
 
       <Stack.Screen name="DispatchRecieve" component={DispatchRecieve} />
+      
+      <Stack.Screen name="Federation" component={Federation} />
+
       <Stack.Screen name="Navbar" component={Navbar} />
       <Stack.Screen name=" SwitchScreens" component={SwitchScreens} />
       <Stack.Screen name="ForgetPassword" component={ForgetPassword} />

@@ -106,12 +106,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 10,
+    backgroundColor : 'white'
   },
   containertwo: {
     width: 250,
     height: 100,
     
    padding : 30,
+   
 
   },
   navbarText: {
@@ -129,10 +131,13 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 50,
-    position: 'relative',
-    top: -30,
-    left: 65,
-    zIndex: -1,
+    position: 'absolute', // Absolute position taaki upar aaye
+    top: -30, // Adjust as needed
+    right:-40,
+   
+
+  
+
   },
  
  

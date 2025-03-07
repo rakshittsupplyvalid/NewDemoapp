@@ -19,7 +19,7 @@ const TruckCard: React.FC<TruckCardProps> = ({ title, count, loading, error, ico
 
       <Text style={styles.cardTitle}>{title}</Text>
       <View style={styles.iconContainer}>
-        <MaterialIcons name={iconName} size={40} color="white" />
+        <MaterialIcons name={iconName} size={25} color="white" />
       </View>
 
       {loading ? (
