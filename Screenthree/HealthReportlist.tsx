@@ -18,83 +18,86 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImageViewing from "react-native-image-viewing";
 import { format, isWithinInterval } from 'date-fns';
 import moment from "moment";
-import { Button } from 'react-native-elements';
+
 import { HealthreportStyle } from '../theme/HealthreportStyle';
+
 
 const HealthReportlist = () => {
   const [profileData, setProfileData] = useState(null);
-const [userId, setUserId] = useState(""); // Store user ID
+  const [userId, setUserId] = useState(""); // Store user ID
   const [reports, setReports] = useState([]);
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-    const [showImages, setShowImages] = useState(false);
+  const [showImages, setShowImages] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
-  const pageSize = 3;
+
   const [hasMoreData, setHasMoreData] = useState(true);
+  const [pageSize, setPageSize] = useState(10); // Default page size
 
 
 
 
-const fetchProfile = async (): Promise<void> => {
-  try {
-    const response = await api.get("/api/user/profile");
-    setProfileData(response.data);
-    setUserId(response.data.id); // Assuming ID field is 'id'
- 
-  } catch (err) {
-    console.error("Error fetching profile data:", err);
-  } finally {
+  const fetchProfile = async (): Promise<void> => {
+    try {
+      const response = await api.get("/api/user/profile");
+      setProfileData(response.data);
+      setUserId(response.data.id); // Assuming ID field is 'id'
+
+    } catch (err) {
+      console.error("Error fetching profile data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+
+  const fetchReports = async (isInitialLoad = false) => {
+    if (!hasMoreData || loading || !userId) return;
+
+    setLoading(true);
+    try {
+      const response = await api.get(
+        `/api/healthreport?ReportType=RECEIVE&PageNumber=${pageNumber}&PageSize=${pageSize}&AssayerId=${userId}`
+      );
+
+      const newReports = response.data || [];
+      if (isInitialLoad) {
+        setReports(newReports);
+      } else {
+        setReports((prevReports) => [...prevReports, ...newReports]);
+      }
+
+      setHasMoreData(newReports.length === pageSize);
+      if (newReports.length === pageSize) {
+        setPageNumber((prevPage) => prevPage + 1);
+      }
+    } catch (error) {
+      console.error("Error fetching health reports:", error);
+    }
     setLoading(false);
-  }
-};
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
 
-const fetchReports = async (isInitialLoad = false) => {
-  if (!hasMoreData || loading || !userId) return; // Ensure userId is available
-  setLoading(true);
-
-  try {
-    const response = await api.get(
-      `/api/healthreport?ReportType=RECEIVE&PageNumber=${pageNumber}&PageSize=${pageSize}&AssayerId=${userId}`
-    );
-
-    const newReports = response.data || [];
-
-    if (isInitialLoad) {
-      setReports(newReports);
-    } else {
-      setReports((prevReports) => [...prevReports, ...newReports]);
+  useEffect(() => {
+    if (userId) {
+      setPageNumber(1);
+      setHasMoreData(true);
+      fetchReports(true);
     }
-
-    if (newReports.length < pageSize) {
-      setHasMoreData(false);
-    } else {
-      setPageNumber((prevPage) => prevPage + 1);
-    }
-  } catch (error) {
-    console.error("Error fetching health reports:", error);
-  }
-
-  setLoading(false);
-};
-
-useEffect(() => {
-  fetchProfile();
-}, []);
-
-
-useEffect(() => {
-  if (userId) {
-    fetchReports(true); // Fetch reports after userId is set
-  }
-}, [userId]);
+  }, [userId, pageSize]);
 
 
   useEffect(() => {
@@ -142,14 +145,32 @@ useEffect(() => {
         onChangeText={setSearchQuery}
       />
 
-      <View style={HealthreportStyle.dateFilterContainer}>
-        <TouchableOpacity style={styles.dateButton} onPress={() => setShowStartPicker(true)}>
-          <Text style={styles.buttonText}>{startDate ? startDate.toDateString() : "Start Date"}</Text>
+      {/* <View style={HealthreportStyle.dateFilterContainer}>
+        <TouchableOpacity style={HealthreportStyle.dateButton} onPress={() => setShowStartPicker(true)}>
+          <Text style={HealthreportStyle.buttonText}>{startDate ? startDate.toDateString() : "Start Date"}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.dateButton} onPress={() => setShowEndPicker(true)}>
-          <Text style={styles.buttonText}>{endDate ? endDate.toDateString() : "End Date"}</Text>
+        <TouchableOpacity style={HealthreportStyle.dateButton} onPress={() => setShowEndPicker(true)}>
+          <Text style={HealthreportStyle.buttonText}>{endDate ? endDate.toDateString() : "End Date"}</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
+
+      {/* Pagination Picker */}
+      {/* <View >
+        <Text style={HealthreportStyle.label}>Reports per page:</Text>
+        <Picker
+          selectedValue={pageSize}
+          onValueChange={(itemValue) => {
+            setPageSize(itemValue);
+            setReports([]);
+            setPageNumber(1);
+          }}
+        
+        >
+          <Picker.Item label="10" value={10} />
+          <Picker.Item label="20" value={15} />
+          <Picker.Item label="30" value={30} />
+        </Picker>
+      </View> */}
 
       {showStartPicker && (
         <DateTimePicker
@@ -177,30 +198,30 @@ useEffect(() => {
 
       <FlatList
         data={filteredReports}
-        
+
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
-          <View style={styles.one}>
-            <View style={styles.card}>
-              <View style={styles.topRightCorner} />
-              <View style={styles.bottomLeftCorner} />
-              <View style={styles.row}>
-                <Text style={styles.label}>Assayer Name:</Text>
-                <Text style={styles.value}>{item.assayername}</Text>
+          <View style={HealthreportStyle.one}>
+            <View style={HealthreportStyle.card}>
+              <View style={HealthreportStyle.topRightCorner} />
+              <View style={HealthreportStyle.bottomLeftCorner} />
+              <View style={HealthreportStyle.row}>
+                <Text style={HealthreportStyle.label}>Assayer Name:</Text>
+                <Text style={HealthreportStyle.value}>{item.assayername}</Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Date:</Text>
-                <Text style={styles.value}>
-                  {moment(item.date).add(5, "hours").format("YYYY-MM-DD HH:mm")}
+              <View style={HealthreportStyle.row}>
+                <Text style={HealthreportStyle.label}>Date:</Text>
+                <Text style={HealthreportStyle.value}>
+                  {moment(item.date).add(5, "hours").format("DD-MM-YYYY")}
                 </Text>
               </View>
-              <View style={styles.row}>
-                <Text style={styles.label}>Truck Number:</Text>
-                <Text style={styles.value}>{item.trucknumber}</Text>
+              <View style={HealthreportStyle.row}>
+                <Text style={HealthreportStyle.label}>Truck Number:</Text>
+                <Text style={HealthreportStyle.value}>{item.trucknumber}</Text>
               </View>
-              <View style={styles.parentbutton}>
-                <TouchableOpacity style={styles.button} onPress={() => fetchReportDetails(item.id)}>
-                  <Text style={styles.buttonText}>View Report</Text>
+              <View style={HealthreportStyle.parentbutton}>
+                <TouchableOpacity style={HealthreportStyle.button} onPress={() => fetchReportDetails(item.id)}>
+                  <Text style={HealthreportStyle.buttonText}>View Report</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -212,10 +233,10 @@ useEffect(() => {
       />
 
 
-     
 
-         {/* Modal for Report Details */}
-         <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+
+      {/* Modal for Report Details */}
+      <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={HealthreportStyle.modalContainer}>
           <View style={HealthreportStyle.heading}>
             <Text style={HealthreportStyle.text} >Recieve Health Report Details</Text>
@@ -224,7 +245,7 @@ useEffect(() => {
 
             {selectedReport && (
               <>
-               <View style={HealthreportStyle.rowone}>
+                <View style={HealthreportStyle.rowone}>
                   <Text style={HealthreportStyle.labelone}>Truck Number:</Text>
                   <Text style={HealthreportStyle.valueone}>{selectedReport.trucknumber}</Text>
                 </View>
@@ -232,8 +253,14 @@ useEffect(() => {
                 <View style={HealthreportStyle.rowone}>
                   <Text style={HealthreportStyle.labelone}>Date:</Text>
                   <Text style={HealthreportStyle.valueone}>
-                    {new Date(selectedReport.date).toLocaleDateString('en-GB')}
+                    {new Date(selectedReport.date).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
                   </Text>
+
+
 
 
 

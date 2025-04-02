@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, RefreshControl, TouchableOpacity , SafeAreaView , Modal, Image } from 'react-native';
+import { View, Text, FlatList, TextInput, RefreshControl, TouchableOpacity , SafeAreaView , Modal, Image, Pressable } from 'react-native';
 import api from '../service/api/apiInterceptors';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { tableStyles } from '../theme/TableStyles';
@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDate } from '../utils/dateUtils';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { HealthreportStyle } from '../theme/HealthreportStyle';
+import moment from 'moment';
 
 
 
@@ -138,6 +139,7 @@ const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
   
   
       <Text style={tableStyles.cell}>{item.date}</Text>
+
       <Text style={tableStyles.cell}>{item.billtype.toUpperCase()}</Text>
       <Text style={tableStyles.cell}>{item.amount}</Text>
       <TouchableOpacity onPress={() => fetchReimbursementDetails(item.id)} >
@@ -158,8 +160,35 @@ const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
 
    <SafeAreaView> 
     <Navbar />
+    
+
+
   
     <View style={tableStyles.container}>
+
+    <Pressable 
+      onPress={() => navigation.navigate('DispatchDrawernavigator')}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F79B00',
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        width : 170,
+        alignSelf: 'flex-end',
+        borderRadius: 10,
+    
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+        marginBottom: 20,
+      }}
+    >
+      <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold', marginRight: 10 }}>
+        Go to Dashboard
+      </Text>
+      <MaterialIcons name="arrow-forward" size={24} color="white" />
+    </Pressable>
       
       <TextInput
         style={tableStyles.searchInput}

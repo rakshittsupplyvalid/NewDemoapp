@@ -35,6 +35,15 @@ const styles = StyleSheet.create({
     padding: 10,
     
   },
+
+
+  offlinecontainers : {
+    backgroundColor : 'white',
+    flex: 1,  // Full screen occupy karega
+    justifyContent: 'center',  // Vertical center
+  
+
+  },
   secondcontainers: {
     backgroundColor: '#fff',
  

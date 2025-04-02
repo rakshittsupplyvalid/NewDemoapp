@@ -111,14 +111,14 @@ export default function DispatchDrawernavigator() {
         }}
       />
 
-<Drawer.Screen
+{/* <Drawer.Screen
         name="ReimbursementList"
         component={ReimbursementList}
         options={{
           headerShown: false,
           drawerIcon: ({ color, size }) => <Icon name="request-quote" size={size} color={color} />,
         }}
-      />
+      /> */}
     </Drawer.Navigator>
   );
 }

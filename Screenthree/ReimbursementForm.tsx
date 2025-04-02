@@ -11,6 +11,8 @@ import {
   SafeAreaView,
   Button,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
   
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -23,21 +25,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Navbar from '../App/Navbar';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+import { ScrollView } from 'react-native-gesture-handler';
 
 
 type ImageAsset = {
@@ -297,6 +285,7 @@ const ReimbursementForm = () => {
   };
 
   return (
+    
     <SafeAreaView style={styles.container}>
 
       <Navbar />
@@ -398,6 +387,7 @@ const ReimbursementForm = () => {
             <TextInput
               style={styles.input}
               placeholder="Purpose"
+                
               value={formData.Purpose}
               onChangeText={(text) => handleInputChange('Purpose', text)}
             />
@@ -498,9 +488,12 @@ const ReimbursementForm = () => {
 
           </View>
         )}
-        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled={true}
       />
     </SafeAreaView>
+ 
+  
   );
 };
 

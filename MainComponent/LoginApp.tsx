@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar, ImageBackground, Keyboard } from 'react-native';
+import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar, ImageBackground, Keyboard, Switch } from 'react-native';
 import { Text } from 'react-native-elements';
 import api from '../service/api/apiInterceptors';
 import { mmkvStorage } from '../service/storage';
@@ -18,6 +18,9 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
+
+  const toggleSwitch = () => setIsOffline(previousState => !previousState);
 
   const handleLogin = async () => {
     if (!mobileno || !password) {
@@ -41,10 +44,18 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
         Alert.alert('Login Failed', response.data.message || 'Invalid credentials.');
       }
     } catch (error) {
-      console.error('Login Error:', error);
+
       Alert.alert('Error', 'Password might be incorrect.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleNavigation = () => {
+    if (isOffline) {
+      navigation.navigate('DispatchDrawernavigator'); // Directly navigate in Offline mode
+    } else {
+      handleLogin(); // Login ke baad navigate
     }
   };
 
@@ -78,6 +89,8 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 </View>
     
    </View>
+
+
  
 
       <ImageBackground
@@ -85,6 +98,21 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
         style={styles.inputBackground}
         resizeMode="contain"
       >
+
+<View style={styles.offlinecontainer}>
+      <Text style={styles.text}>Offline Mode</Text>
+      <View style={styles.switchContainer}>
+        <Switch
+          trackColor={{ false: '#d3d3d3', true: '#F79B00' }}
+          thumbColor={isOffline ? '#fff' : '#fff'}
+          ios_backgroundColor="#3e3e3e"
+          onValueChange={toggleSwitch}
+          value={isOffline}
+        />
+ 
+      </View>
+    </View>
+        
         <View style={styles.inputContainer}>
           <Icon name="phone" size={20} color="#666" style={styles.icon} />
           <TextInput
@@ -95,6 +123,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             value={mobileno}
             onChangeText={setMobileno}
             maxLength={10}
+            editable={!isOffline} // Disable input when offline
           />
         </View>
         <View style={styles.inputContainer}>
@@ -105,6 +134,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             secureTextEntry={!passwordVisible}
             value={password}
             onChangeText={setPassword}
+            editable={!isOffline} // Disable input when offline
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
             <Icon name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#666" />
@@ -119,14 +149,21 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 </View>
 
 
+
+<View style={{ alignItems: 'flex-end', width: '100%', paddingHorizontal: 20 }}>
+  <TouchableOpacity onPress={() => navigation.navigate('ReportOffline')}>
+    <Text style={styles.footerText}>Report Offline</Text>
+  </TouchableOpacity>
+</View>
+
+
       </ImageBackground>
 
 
       <View style={styles.view}>
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Login</Text>
-
-        </TouchableOpacity >
+      <TouchableOpacity style={styles.button} onPress={handleNavigation}>
+        <Text style={styles.buttonText}>{isOffline ? 'Offline' : 'Login'}</Text>
+      </TouchableOpacity>
 
        
       </View>
@@ -281,6 +318,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  offlinecontainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 15,
+    backgroundColor: '#fff',
+   
+    position : 'relative',
+    left  : 100,
+    bottom : 140
+   
+  },
+  text: {
+    fontSize: 18,
+
+    color: '#333',
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  }
 });
 
 export default LoginApp;

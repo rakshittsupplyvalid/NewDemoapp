@@ -12,6 +12,8 @@ import { launchCamera, launchImageLibrary, ImagePickerResponse, ImageLibraryOpti
 import styles from '../theme/Healthreport';
 import Footer from '../App/Footer';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import DropDownPicker from "react-native-dropdown-picker";
+
 import moment from 'moment';
 
 
@@ -49,6 +51,7 @@ const GenerateHealthReport = () => {
 
 
   const [isComment, setIsComment] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const [selectedCompany, setSelectedCompany] = useState("");
   const [selectedCompanyName, setSelectedCompanyName] = useState("");
@@ -89,6 +92,10 @@ const GenerateHealthReport = () => {
   const [SpoliedComment, setSpoliedComment] = useState('');
 
   const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
+  const [items, setItems] = useState(
+    data2.map((item) => ({ label: item.text, value: item.value }))
+  );
+
 
 
   const requestCameraPermission = async () => {
@@ -178,67 +185,70 @@ const GenerateHealthReport = () => {
     const truckNumberRegex = /^[A-Z]{2}\d{2}[A-Z]{2}\d{4}$/;
 
 
-    if (currentStep === 1) {
-      if (!selectedCompany) {
-        Alert.alert("Validation Error", "Company is required");
-        return;
-      }
-      if (!selectedbranchs) {
-        Alert.alert("Validation Error", "Branch is required");
-        return;
-      }
-      if (!selectedDistrict) {
-        Alert.alert("Validation Error", "District is required");
-        return;
-      }
-    }
+    
 
 
-    if (currentStep === 2) {
-      if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
-        Alert.alert("Validation Error", "All fields are required!");
-        return;
-      }
-    }
+    // if (currentStep === 1) {
+    //   if (!selectedCompany) {
+    //     Alert.alert("Validation Error", "Company is required");
+    //     return;
+    //   }
+    //   if (!selectedbranchs) {
+    //     Alert.alert("Validation Error", "Branch is required");
+    //     return;
+    //   }
+    //   if (!selectedDistrict) {
+    //     Alert.alert("Validation Error", "District is required");
+    //     return;
+    //   }
+    // }
 
-    if (currentStep === 2 && !truckNumberRegex.test(truckNumber.trim().toUpperCase())) {
-      Alert.alert("Validation Error", "truck number is reqired!");
-      return;
-    }
+
+    // if (currentStep === 2) {
+    //   if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
+    //     Alert.alert("Validation Error", "All fields are required!");
+    //     return;
+    //   }
+    // }
+
+    // if (currentStep === 2 && !truckNumberRegex.test(truckNumber.trim().toUpperCase())) {
+    //   Alert.alert("Validation Error", "Enter a Valid Truck Number!");
+    //   return;
+    // }
 
 
-    if (currentStep === 3) {
-      if (onionSkin === "SINGLE" && !onionSkinPercent) {
-        Alert.alert("Validation error", "Onion Skin Percent is required!");
-        return;
-      }
+    // if (currentStep === 3) {
+    //   if (onionSkin === "SINGLE" && !onionSkinPercent) {
+    //     Alert.alert("Validation error", "Onion Skin Percent is required!");
+    //     return;
+    //   }
 
-      if (onionSkin === "DOUBLE" && !onionSkinPercent) {
-        Alert.alert("Validation error", "Onion Skin Percent is required!");
-        return;
-      }
-      if (moisture === "WET" && !moisturePercent) {
-        Alert.alert("Validation error", "Moisture Percent is required!");
-        return;
-      }
-      if (isSpoiledPercentVisible && !SpoliedPercent) {
-        Alert.alert("Validation error", "Spoiled Percent is required!");
-        return;
-      }
-      if (isSpoiledPercentVisible && !SpoliedBranch) {
-        Alert.alert("Validation error", "Branch Person name is required!");
-        return;
-      }
-      if (isSpoiledPercentVisible && !SpoliedComment) {
-        Alert.alert("Validation error", "Type Comments is required!");
-        return;
-      }
-      if (!imageUri || imageUri.length === 3) {
-        alert('Please upload at least three image.');
-        return;
-      }
+    //   if (onionSkin === "DOUBLE" && !onionSkinPercent) {
+    //     Alert.alert("Validation error", "Onion Skin Percent is required!");
+    //     return;
+    //   }
+    //   if (moisture === "WET" && !moisturePercent) {
+    //     Alert.alert("Validation error", "Moisture Percent is required!");
+    //     return;
+    //   }
+    //   if (isSpoiledPercentVisible && !SpoliedPercent) {
+    //     Alert.alert("Validation error", "Spoiled Percent is required!");
+    //     return;
+    //   }
+    //   if (isSpoiledPercentVisible && !SpoliedBranch) {
+    //     Alert.alert("Validation error", "Branch Person name is required!");
+    //     return;
+    //   }
+    //   if (isSpoiledPercentVisible && !SpoliedComment) {
+    //     Alert.alert("Validation error", "Type Comments is required!");
+    //     return;
+    //   }
+    //   if (!imageUri || imageUri.length === 3) {
+    //     alert('Please upload at least three image.');
+    //     return;
+    //   }
 
-    }
+    // }
 
     setPreviousSteps([...previousSteps, currentStep]); // Store current step in history
     setCurrentStep(nextStep);
@@ -468,7 +478,7 @@ const GenerateHealthReport = () => {
 
 
   useEffect(() => {
-    console.log('Updated Destination District:', destinationDistrict);
+
   }, [destinationDistrict]);
 
 
@@ -491,11 +501,6 @@ const GenerateHealthReport = () => {
       );
 
       setDestinationBranch(response.data);
-
-
-
-
-
     } catch (error) {
       console.error("Error fetching data3:", error);
     }
@@ -554,7 +559,27 @@ const GenerateHealthReport = () => {
           {currentStep === 1 && (
             <View style={styles.onecontainers}>
 
-
+{/* 
+              <View style={styles.content}>
+                <View style={styles.pickerContainer}>
+                <DropDownPicker
+        open={open}
+        value={selectedCompany}
+        items={items}
+        setOpen={setOpen}
+        setValue={setSelectedCompany}
+        setItems={setItems}
+        searchable={true}
+        placeholder="Select Company"
+        onChangeValue={(value) => {
+          const selectedCompanyObj = data2.find((item) => item.value === value);
+          if (selectedCompanyObj) {
+            console.log("Selected Company:", selectedCompanyObj.text);
+          }
+        }}
+      />
+                </View>
+              </View> */}   
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
@@ -585,29 +610,18 @@ const GenerateHealthReport = () => {
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
-
-                    selectedValue={selectedbranchs} // Ensure ID is used for selection
+                    selectedValue={selectedbranchs}
                     onValueChange={(value) => {
                       setBranchId(String(value));
-
                       const selectedBranch = destinationBranch.find(item => item.id === value);
-
                       if (selectedBranch) {
-                        setSelectedbranch(selectedBranch.name);// Set full object instead of just name
-
-
+                        setSelectedbranch(selectedBranch.name);
                       }
-
-
                     }}
-                    style={styles.picker}
-
-
                   >
-
                     <Picker.Item label="Select Branch" value="" />
                     {destinationBranch.map((item, idx) => (
-                      <Picker.Item key={idx} label={item.name} value={item.id} /> // yaha value ko id set kiya hai
+                      <Picker.Item key={idx} label={item.name} value={item.id} />
                     ))}
                   </Picker>
                 </View>
@@ -871,6 +885,28 @@ const GenerateHealthReport = () => {
                   />
                 )}
 
+                  <View style={styles.switchContainer}>
+                  <Text style={styles.text}>Spoiled Onion</Text>
+                  <Switch
+                    value={spoiledOnion}
+                    onValueChange={(value) => {
+                      setSpoiledOnion(value);
+                      if (!value) setSpoiledPercent('');
+                    }}
+                    trackColor={{ false: '#F6A00191', true: '#FF9500' }} // Red track when ON
+                    thumbColor={stainingColour ? 'white' : '#f4f3f4'} // White thumb when ON
+                  />
+                </View>
+                {spoiledOnion && (
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Spoiled Percent"
+                    value={spoiledPercent}
+                    onChangeText={(text) => setSpoiledPercent(text)}
+                    keyboardType="numeric"
+                  />
+                )}
+
                 {/* OnionSkin Dropdown */}
                 <View style={styles.dropdownContainer}>
                   <Text style={styles.text}>Onion Skin</Text>
@@ -1049,7 +1085,7 @@ const GenerateHealthReport = () => {
 
 
       </SafeAreaView>
-      <Footer />
+
 
 
 

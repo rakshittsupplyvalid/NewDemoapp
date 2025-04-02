@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   icon: { marginRight: 10 },
   button: { width: '70%', height: 50, backgroundColor: '#F6A001', borderRadius: 35, alignItems: 'center', justifyContent: 'center', marginTop: 10 },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  photobottomtcontainer: { position: 'absolute', bottom: 1, left: '50%', transform: [{ translateX: -42 }], width: 60, height: 60 },
+  photobottomtcontainer: { position: 'absolute', bottom: 1, left: 0, transform: [{ translateX: -42 }], width: 60, height: 60 },
   inputBackground: { width: '100%', height: 450, justifyContent: 'center', alignItems: 'center' },
 });
 

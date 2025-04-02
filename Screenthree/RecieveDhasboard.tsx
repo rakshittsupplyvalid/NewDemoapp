@@ -73,7 +73,7 @@ const RecieveDhasboard = () => {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
           <View style={styles.cardContainer}>
-          <View  style={{ width: '50%', padding: 3 }}>
+          <View  style={{ width: '70%', padding: 3 }}>
             <TruckCard
               title="Receiving Pending Truck"
               count={dispatchCount}
@@ -84,7 +84,7 @@ const RecieveDhasboard = () => {
 
             />
             </View>
-            <View  style={{ width: '50%', padding: 3 }}>
+            <View  style={{ width: '70%', padding: 3 }}>
             <TruckCard
               title="Received Truck"
               count={recieveCount}
@@ -95,7 +95,7 @@ const RecieveDhasboard = () => {
             />
             </View>
 
-            <View  style={{ width: '50%', padding: 3 }}>
+            <View  style={{ width: '70%', padding: 3 }}>
              <TruckCard
               title="Request Reimburesment Pending"
               count={RequestRempending}
@@ -109,7 +109,7 @@ const RecieveDhasboard = () => {
                 </View>
 
 
-                <View  style={{ width: '50%', padding: 3 }}>
+                <View  style={{ width: '70%', padding: 3 }}>
              <TruckCard
               title="Payment Paid"
               count={PaymentPaid}
@@ -125,7 +125,7 @@ const RecieveDhasboard = () => {
                 </View>
 
 
-                <View  style={{ width: '50%', padding: 3 }}>  
+                <View  style={{ width: '70%', padding: 3 }}>  
                  <TruckCard
                   title="Payment decline"
               count={PaymentPaid}
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap', // Allows wrapping to next row
-    justifyContent: 'space-between', // Space between items
+    justifyContent: 'center', // Space between items
    
     paddingHorizontal: 10,
   },

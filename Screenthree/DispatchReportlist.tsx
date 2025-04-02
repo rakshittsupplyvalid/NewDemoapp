@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View } from 'react-native';
 import Navbar from '../App/Navbar';
 import api from '../service/api/apiInterceptors';
+import { format, isWithinInterval } from 'date-fns';
+
+import moment from "moment";
 
 const DispatchReportlist = () => {
   const [reports, setReports] = useState([]);
@@ -61,7 +64,7 @@ const DispatchReportlist = () => {
               </View>
               <View style={styles.row}>
               <Text style={styles.label}>Date:</Text>
-              <Text style={styles.value}>{new Date(item.date).toLocaleDateString()}</Text>
+              <Text style={styles.value}>{moment(item.date).format('DD-MM-YYYY')}</Text>
               </View>
               <View style={styles.row}>
                 <Text style={styles.label}>Truck Number</Text>

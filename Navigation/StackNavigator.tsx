@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginApp from '../MainComponent/LoginApp';
-import Federation from '../MainComponent/Federation';
+import Federation from '../MainComponent/ReportOffline';
 
 
 
@@ -12,9 +12,12 @@ import Navbar from '../App/Navbar';
 import SwitchScreens from '../MainComponent/SwitchScreens';
 import DispatchDrawernavigator from './DispatchDrawernavigator';
 import DispatchRecieve from '../Screenthree/DispatchRecieve';
+import ReimbursementList from '../Screenthree/ReimbursementList';
 
 import HealthReport from '../Screenthree/HealthReport';
 import ForgetPassword from '../MainComponent/ForgetPassword';
+import OfflineForm from '../Screenthree/OfflineForm';
+import ReportOffline from '../MainComponent/ReportOffline';
 
 
 
@@ -39,6 +42,7 @@ export default function StackNavigator() {
       <Stack.Screen name="DispatchDrawernavigator" component={DispatchDrawernavigator} />
 
 
+      <Stack.Screen name="ReportOffline" component={ReportOffline} />
       <Stack.Screen name="DispatchRecieve" component={DispatchRecieve} />
       
       <Stack.Screen name="Federation" component={Federation} />
@@ -47,6 +51,9 @@ export default function StackNavigator() {
       <Stack.Screen name=" SwitchScreens" component={SwitchScreens} />
       <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
       <Stack.Screen name="HealthReport" component={HealthReport} />
+      <Stack.Screen name="ReimbursementList" component={ReimbursementList} />
+      <Stack.Screen name = "OfflineForm" component={OfflineForm} />
+    
     
     </Stack.Navigator>
 
