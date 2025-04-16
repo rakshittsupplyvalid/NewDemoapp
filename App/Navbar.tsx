@@ -5,13 +5,22 @@ import { NavigationContext } from '@react-navigation/native';
 import { DrawerActions } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { MMKV } from 'react-native-mmkv';
+import { useTranslation } from 'react-i18next';
+
 
 // Initialize MMKV
 const storage = new MMKV();
 
 const Navbar: React.FC = () => {
   const navigation = useContext(NavigationContext);
-  const currentRouteName = navigation?.getState().routes[navigation.getState().index].name;
+  const { t, i18n } = useTranslation();
+
+  const currentRouteName = navigation?.getState()
+    .routes[navigation.getState().index]
+    .name.replace(/([a-z])([A-Z])/g, '$1 $2');
+
+
+  const localizedRouteName = t(currentRouteName);
 
   const handleMenuPress = () => {
     if (navigation) {
@@ -45,29 +54,36 @@ const Navbar: React.FC = () => {
           <MaterialIcons name="menu" size={30} color="#fff" />
         </TouchableOpacity>
         <View style={styles.centerComponent}>
-          <Text style={styles.headerTitle}>{currentRouteName}</Text>
+          <Text style={styles.headerTitle}>{localizedRouteName}</Text>
         </View>
+         
+         {/* <TouchableOpacity  onPress={() => navigation.navigate("LanguageSelector")}  style={styles.rightComponent}>
+          <MaterialIcons name="language" size={20} color="#fff" />
+        </TouchableOpacity> 
+        */}
         <TouchableOpacity onPress={handleLogoutPress} style={styles.rightComponent}>
           <MaterialIcons name="logout" size={20} color="#fff" />
         </TouchableOpacity>
+
+
       </View>
       <View>
-        
+
       </View >
-  
-  <View style={styles.container}>
 
-       <View style={styles.containertwo}>
+      <View style={styles.container}>
 
-     
-      <Text style={styles.navbarText}>{currentRouteName}</Text>
-      <Text style={styles.navbarInnerText}>Lorem Ipsum is simply dummy text of the printing and typesetting industry. </Text>
+        <View style={styles.containertwo}>
+
+
+          <Text style={styles.navbarText}>{currentRouteName}</Text>
+
+        </View>
+
+        <View style={styles.circleBackground} />
       </View>
-     
-      <View style={styles.circleBackground} />
-      </View>
-  
-    
+
+
     </SafeAreaView>
   );
 };
@@ -90,15 +106,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rightComponent: {
-    flex: 1,
-    justifyContent: 'flex-end',
+    flex: 0.9,
+
+
+
   },
-  
+
   headerTitle: {
     color: '#fff',
     fontSize: 20,
     fontWeight: 'bold',
-    
+
   },
 
   container: {
@@ -106,14 +124,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 10,
-    backgroundColor : 'white'
+    backgroundColor: 'white'
   },
   containertwo: {
     width: 250,
     height: 100,
-    
-   padding : 30,
-   
+
+    padding: 30,
+
 
   },
   navbarText: {
@@ -122,7 +140,7 @@ const styles = StyleSheet.create({
     color: 'black',
     textTransform: 'uppercase',
   },
-  navbarInnerText :{
+  navbarInnerText: {
     width: 250,
 
   },
@@ -133,14 +151,14 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     position: 'absolute', // Absolute position taaki upar aaye
     top: -30, // Adjust as needed
-    right:-40,
-   
+    right: -40,
 
-  
+
+
 
   },
- 
- 
+
+
 });
 
 export default Navbar;

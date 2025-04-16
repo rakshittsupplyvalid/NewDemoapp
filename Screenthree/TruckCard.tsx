@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import {useTranslation} from 'react-i18next';
 
 interface TruckCardProps {
   title: string;
@@ -12,6 +13,8 @@ interface TruckCardProps {
 }
 
 const TruckCard: React.FC<TruckCardProps> = ({ title, count, loading, error, iconName, onPress }) => {
+
+      const { t ,  i18n } = useTranslation();
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       {/* Top Right Corner */}
@@ -19,7 +22,7 @@ const TruckCard: React.FC<TruckCardProps> = ({ title, count, loading, error, ico
 
       <Text style={styles.cardTitle}>{title}</Text>
       <View style={styles.iconContainer}>
-        <MaterialIcons name={iconName} size={25} color="white" />
+        <MaterialIcons name={iconName} size={22} color="white" />
       </View>
 
       {loading ? (
@@ -27,7 +30,7 @@ const TruckCard: React.FC<TruckCardProps> = ({ title, count, loading, error, ico
       ) : error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : (
-        <Text style={styles.cardDescription}>Count {count}</Text>
+        <Text style={styles.cardDescription}>{t('Count')} {count}</Text>
       )}
 
       {/* Bottom Left Corner */}
@@ -47,24 +50,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 6,
-    height: 160,
-    width : 180,
+    height: 150,
+    width : 150,
     justifyContent: 'center',
     backgroundColor: 'white',
 
   },
   cardTitle: {
-    fontSize: 17,
+    fontSize: 15,
     color: 'black',
     marginTop: 10,
-    width: 150,
+    width: 130,
     textAlign: 'center',
   },
   cardDescription: {
-    fontSize: 16,
+    fontSize: 15,
     color: 'black',
     marginTop: 5,
     textAlign: 'center',
+
   },
   errorText: {
     fontSize: 14,

@@ -48,13 +48,6 @@ const DispatchRecieve = () => {
 
   return (
     <View style={styles.container}>
-      {/* Input Field */}
-      {/* <TextInput
-        style={styles.input}
-        placeholder="Enter text"
-        value={quantitymt}  // Now quantitymt is typed correctly
-      /> */}
-
       <Text>Received Quantity: {quantitymt}</Text>
       <View style={{ padding: 20 }}>
         <Text style={{ marginBottom: 10 }}>Select an option:</Text>

@@ -3,20 +3,30 @@ import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar,
 import { Text } from 'react-native-elements';
 import api from '../service/api/apiInterceptors';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { screenWidth } from '../utils/Constants';
+import { StackNavigationProp } from '@react-navigation/stack'; 
+import { screenWidth } from '../utils/Constants'  ;
+import {useTranslation} from 'react-i18next';
 
 interface ForgetPasswordProps {
   navigation: StackNavigationProp<any>;
+  route: any;
 }
 
-const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
+const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation, route }) => {
   const [mobileno, setMobileno] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+     const [otp, setOtp] = useState('');
+         const [newPassword, setNewPassword] = useState('');
+             const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordVisible, setPasswordVisible] = useState(false);
+      const [keyboardVisible, setKeyboardVisible] = useState(false);
+        const { t ,  i18n } = useTranslation();
+
+
+  useEffect(() => {
+    if (route?.params?.mobileno) {
+      setMobileno(route.params.mobileno);
+    }
+  }, [route]);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -52,8 +62,9 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
       return;
     }
 
-    try {
-      const response = await api.put('/api/user/forgotpassword/reset', {
+    try 
+    {
+      const response = await api.put('/api/user/forgotpassword/reset',{
         mobile: mobileno,
         otp,
         newpassword: newPassword,
@@ -93,7 +104,7 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
           <Icon name="phone" size={20} color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Mobile Number"
+            placeholder={t('mobilePlaceholder')}
             keyboardType="number-pad"
             value={mobileno}
             onChangeText={setMobileno}
@@ -102,14 +113,14 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
         </View>
 
         <TouchableOpacity style={styles.button} onPress={requestOtp}>
-          <Text style={styles.buttonText}>Request OTP</Text>
+          <Text style={styles.buttonText}>{t('RequestOTP')}</Text>
         </TouchableOpacity>
 
         <View style={styles.inputContainer}>
           <Icon name="key" size={20} color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Enter OTP"
+            placeholder={t('EnterOtp')}
             keyboardType="number-pad"
             value={otp}
             onChangeText={setOtp}
@@ -121,7 +132,7 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
           <Icon name="lock" size={20} color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="New Password"
+            placeholder={t('NewPassword')}
             secureTextEntry={!passwordVisible}
             value={newPassword}
             onChangeText={setNewPassword}
@@ -131,21 +142,21 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Icon name="lock-check" size={20} color="#666" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm Password"
-            secureTextEntry={!passwordVisible}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-        </View>
+           <View style={styles.inputContainer}>
+            <Icon name="lock-check" size={20} color="#666" style={styles.icon} />
+            <TextInput
+             style={styles.input}
+             placeholder={t('confirmPassword')}
+             secureTextEntry={!passwordVisible}
+             value={confirmPassword}
+             onChangeText={setConfirmPassword}
+             />
+            </View>
 
         <TouchableOpacity style={styles.button} onPress={resetPassword}>
-          <Text style={styles.buttonText}>Reset Password</Text>
+          <Text style={styles.buttonText}>{t('ResetPassword')}</Text>
         </TouchableOpacity>
-      </ImageBackground>
+        </ImageBackground>
 
       {!keyboardVisible && (
         <View style={styles.photobottomtcontainer}>
@@ -154,18 +165,25 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation }) => {
       )}
 
       <TouchableOpacity onPress={() => navigation.navigate('LoginApp')}>
-        <Text >Back to login</Text>
+        <Text >{t('BacktoLogin')}</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
+
+
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', backgroundColor: 'white', paddingHorizontal: 20, justifyContent: 'center' },
+
+  
   phototcontainer: { width: 80, height: 80, position: 'absolute', top: 0, right: 0 },
   topRightImage: { position: 'absolute', top: 0, right: 0, width: 80, height: 70 },
+  
   logoContainer: { alignItems: 'center', marginBottom: -50 },
+  
   logo: { width: screenWidth * 0.5, height: screenWidth * 0.2, resizeMode: 'contain' },
+  
   logoText: { fontSize: 21, fontWeight: 'bold', color: '#333', marginTop: 20 },
   inputContainer: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#F6A001', borderRadius: 28, paddingHorizontal: 10, marginVertical: 10, width: '100%', backgroundColor: '#ffffff', elevation: 14 },
   input: { flex: 1, height: 50, padding: 10, fontSize: 16 },

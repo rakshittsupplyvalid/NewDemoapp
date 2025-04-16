@@ -3,9 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import StackNavigator from './Navigation/StackNavigator';  
 import { NavigationContainerRef } from '@react-navigation/native';
 
-
-
-
 type RootParamList = {};
 
 export const NavigationContext = React.createContext<NavigationContainerRef<RootParamList> | null>(null); // Named export

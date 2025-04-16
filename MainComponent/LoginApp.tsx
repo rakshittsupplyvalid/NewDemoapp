@@ -1,55 +1,94 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar, ImageBackground, Keyboard, Switch } from 'react-native';
+import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar, ImageBackground, Keyboard, Switch, Button } from 'react-native';
 import { Text } from 'react-native-elements';
 import api from '../service/api/apiInterceptors';
 import { mmkvStorage } from '../service/storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { screenWidth } from '../utils/Constants';
+import NetInfo from "@react-native-community/netinfo";
+import {useTranslation} from 'react-i18next';
+
+
 
 interface LoginAppProps {
   navigation: StackNavigationProp<any>;
 }
 
 const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
+  const [isConnected, setIsConnected] = useState(true);
   const [mobileno, setMobileno] = useState('9990665359');
   const [password, setPassword] = useState('Onion@2025');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const [isOffline, setIsOffline] = useState(false);
+  const { t ,  i18n } = useTranslation();
+  const isOffline = !isConnected;
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
 
-  const toggleSwitch = () => setIsOffline(previousState => !previousState);
+    return () => unsubscribe();
+  }, []);
 
   const handleLogin = async () => {
     if (!mobileno || !password) {
       Alert.alert('Error', 'Please enter both mobile number and password.');
       return;
     }
+  
     if (mobileno.length !== 10 || isNaN(Number(mobileno))) {
       Alert.alert('Error', 'Please enter a valid 10-digit mobile number.');
       return;
     }
+  
+    // Check internet connection
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      Alert.alert('No Internet', 'Please check your internet connection and try again.');
+      return;
+    }
+  
     setIsLoading(true);
+  
     try {
       const response = await api.post('/api/login/assayer', { mobileno, password });
-
+  
       if (response.status === 200) {
         const responseData = response.data;
+  
         mmkvStorage.setItem('userinfo', JSON.stringify(responseData));
-        mmkvStorage.setItem('token', responseData?.token);
+        mmkvStorage.setItem('token', responseData.token);
+  
+        setIsLoading(false);
         navigation.navigate('DispatchDrawernavigator');
       } else {
+        setIsLoading(false);
         Alert.alert('Login Failed', response.data.message || 'Invalid credentials.');
       }
-    } catch (error) {
+    } 
 
-      Alert.alert('Error', 'Password might be incorrect.');
-    } finally {
+    
+    
+    catch (error: any) {
       setIsLoading(false);
+   
+    
+      if (error.response && error.response.status === 400) {
+        const message = error.response.data?.message || 'Invalid username or password.';
+        Alert.alert(
+          'Login Failed',
+          message,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert( 'Login Failed', "Password might be incorect");
+     
+      }
     }
   };
+  
 
   const handleNavigation = () => {
     if (isOffline) {
@@ -81,17 +120,17 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       </View>
       <View style={styles.logoContainer}>
         <Image source={require('../assets/logo.png')} style={styles.logo} />
-        <View  style={styles.TextContainer}>
-
-     
-<Text style={styles.logoText}>Login into Your Account</Text>
-<Text  style={styles.logoTextinner}>See what is going on with your business</Text>
-</View>
+        <View style={styles.TextContainer}>
     
-   </View>
+
+          <Text style={styles.logoText}>{t('loginTitle')}</Text>
+          <Text style={styles.logoTextinner}>{t('loginSubtitle')}</Text>
+        </View>
+
+      </View>
 
 
- 
+
 
       <ImageBackground
         source={require('../assets/Ellipse8.png')}
@@ -99,28 +138,15 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
         resizeMode="contain"
       >
 
-<View style={styles.offlinecontainer}>
-      <Text style={styles.text}>Offline Mode</Text>
-      <View style={styles.switchContainer}>
-        <Switch
-          trackColor={{ false: '#d3d3d3', true: '#F79B00' }}
-          thumbColor={isOffline ? '#fff' : '#fff'}
-          ios_backgroundColor="#3e3e3e"
-          onValueChange={toggleSwitch}
-          value={isOffline}
-        />
- 
-      </View>
-    </View>
-        
+
         <View style={styles.inputContainer}>
           <Icon name="phone" size={20} color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Mobile Number"
+            placeholder={t('mobilePlaceholder')}
             keyboardType="number-pad"
             autoCapitalize="none"
-            value={mobileno}
+            value={isOffline ? '' : mobileno}
             onChangeText={setMobileno}
             maxLength={10}
             editable={!isOffline} // Disable input when offline
@@ -130,42 +156,45 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
           <Icon name="lock" size={20} color="#666" style={styles.icon} />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder={t('passwordPlaceholder')}
             secureTextEntry={!passwordVisible}
-            value={password}
+            value={isOffline ? '' : password}
             onChangeText={setPassword}
-            editable={!isOffline} // Disable input when offline
+            editable={!isOffline} 
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
             <Icon name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#666" />
           </TouchableOpacity>
         </View>
 
-        
+
         <View style={{ alignItems: 'flex-end', width: '100%', paddingHorizontal: 20 }}>
-  <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword')}>
-    <Text style={styles.footerText}>Forget Password</Text>
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity  onPress={() => navigation.navigate('ForgetPassword', { mobileno })}>
+            <Text style={styles.footerText}>{t('forgotPassword')}</Text>
+          </TouchableOpacity>
+        </View>
 
 
-
-<View style={{ alignItems: 'flex-end', width: '100%', paddingHorizontal: 20 }}>
-  <TouchableOpacity onPress={() => navigation.navigate('ReportOffline')}>
-    <Text style={styles.footerText}>Report Offline</Text>
-  </TouchableOpacity>
-</View>
+        {/* <View style={{ alignItems: 'flex-end', width: '100%', paddingHorizontal: 20 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('OfflineForm')}>
+            <Text style={styles.footerText}>Offline Form</Text>
+          </TouchableOpacity>
+        </View> */}
+{/* 
+        <Button title="Hindi" onPress={() => i18n.changeLanguage('hi')} />
+<Button title="English" onPress={() => i18n.changeLanguage('en')} /> */}
 
 
       </ImageBackground>
 
 
       <View style={styles.view}>
-      <TouchableOpacity style={styles.button} onPress={handleNavigation}>
-        <Text style={styles.buttonText}>{isOffline ? 'Offline' : 'Login'}</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleNavigation}>
+        <Text style={styles.buttonText}>{isOffline ? t('offlineButton') : t('loginButton')}</Text>
 
-       
+        </TouchableOpacity>
+
+
       </View>
 
       {/* Conditionally render the image when keyboard is not visible */}
@@ -174,6 +203,8 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
           <Image source={require('../assets/Ellipse9.png')} style={styles.bottomLeftImage} />
         </View>
       )}
+
+      
     </View>
   );
 };
@@ -208,7 +239,7 @@ const styles = StyleSheet.create({
     marginBottom: -50,
     marginLeft: -170,
   },
-  
+
   logo: {
     width: screenWidth * 0.5,
     height: screenWidth * 0.2,
@@ -218,28 +249,28 @@ const styles = StyleSheet.create({
   TextContainer: {
     width: screenWidth * 0.9,
     height: screenWidth * 0.2,
-  
-       paddingLeft : 90,
-     
-        position : 'relative',
-        top : 30,
- 
 
- 
-  },  
+    paddingLeft: 90,
+
+    position: 'relative',
+    top: 30,
+
+
+
+  },
   logoText: {
     fontSize: 20,
 
     color: '#333',
-  
+
   },
   logoTextinner: {
     fontSize: 15,
 
     color: '#333',
- 
- 
-  
+
+
+
   },
 
   inputContainer: {
@@ -278,7 +309,7 @@ const styles = StyleSheet.create({
     height: 100,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -30,
+    marginTop: -70,
   },
 
   buttonText: {
@@ -309,7 +340,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F79B0099', // Orange color
     borderBottomLeftRadius: 10,
 
-  
+
   },
 
   inputBackground: {
@@ -319,16 +350,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   offlinecontainer: {
-    flexDirection: 'row', 
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 15,
     backgroundColor: '#fff',
-   
-    position : 'relative',
-    left  : 100,
-    bottom : 140
-   
+
+    position: 'relative',
+    left: 100,
+    bottom: 140
+
   },
   text: {
     fontSize: 18,

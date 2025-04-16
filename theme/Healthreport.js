@@ -8,6 +8,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white', // Light background for the entire screen
   },
+
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1,
+  },
+  fullImage: {
+    width: '90%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
   scrollView: {
     flexGrow: 1,
     padding: 20,
@@ -157,10 +175,19 @@ const styles = StyleSheet.create({
     marginBottom: 10, // Space between rows
     borderRadius: 10, // Rounded corners for the image container
     overflow: 'hidden', // Ensure the image stays within the container
+   
   },
   image: {
     width: '100%', // Fill the container width
     height: '100%', // Fill the container height
+  },
+  deleteIcon: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 12,
+    padding: 2,
   },
 });
 export default styles;

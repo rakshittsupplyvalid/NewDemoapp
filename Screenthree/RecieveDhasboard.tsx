@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { SafeAreaView, View, ScrollView, RefreshControl, StyleSheet } from 'react-native';
+import { SafeAreaView, View, ScrollView, RefreshControl, StyleSheet, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Navbar from '../App/Navbar';
 import api from '../service/api/apiInterceptors';
@@ -7,44 +7,51 @@ import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { RootStackParamList } from '../types/Type';
 import Footer from '../App/Footer';
 import TruckCard from './TruckCard';
+import NetInfo from "@react-native-community/netinfo";
+import {useTranslation} from 'react-i18next';
 
 const RecieveDhasboard = () => {
   const [dispatchCount, setDispatchCount] = useState<number | null>(null);
   const [recieveCount, setRecieveCount] = useState<number | null>(null);
-  const[RequestRempending,setRequestRempending]=useState<number | null>(null);
-  const[PaymentPaid,setPaymentPaid]=useState<number | null>(null);
+  const [RequestRempending, setRequestRempending] = useState<number | null>(null);
+  const [PaymentPaid, setPaymentPaid] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
+    const { t ,  i18n } = useTranslation();
 
   const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(state.isConnected);
+      if (state.isConnected) {
+        fetchCounts(); // Agar internet on hota hai toh data fetch hoga
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  
 
   const fetchCounts = async () => {
     setLoading(true);
     try {
       const dispatchResponse = await api.get('/api/dispatch/truckcount/total?DispatchStatus=DISPATCHED');
       setDispatchCount(dispatchResponse.data);
-     
 
       const recieveResponse = await api.get('/api/dispatch/truckcount/total?DispatchStatus=RECEIVED');
       setRecieveCount(recieveResponse.data);
-     
 
+      const requestRemPending = await api.get('/api/reimbursment/count?ApprovalStatus=PENDING');
+      setRequestRempending(requestRemPending.data);
 
-      const RequestRempending = await api.get('/api/reimbursment/count?ApprovalStatus=PENDING');
-      setRequestRempending(RequestRempending.data);
-      console.log('Recixvgxeve',RequestRempending.data);
-
-       
-      const PaymentPaid = await api.get('/api/reimbursment/count?BillPaymentStatus=PAID&ApprovalStatus=APPROVED');
-      setPaymentPaid(PaymentPaid.data);
-
-
-
-
-
-
-      
+      const paymentPaid = await api.get('/api/reimbursment/count?BillPaymentStatus=PAID&ApprovalStatus=APPROVED');
+      setPaymentPaid(paymentPaid.data);
 
       setError(null);
     } catch (err) {
@@ -55,92 +62,82 @@ const RecieveDhasboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchCounts();
-  }, []);
-
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchCounts();
-  }, []);
+    if (isConnected) {
+      fetchCounts();
+    } else {
+      setRefreshing(false);
+    }
+  }, [isConnected]);
 
   return (
     <View style={styles.mainContainer}>
       <Navbar />
       <SafeAreaView style={styles.container}>
-        <ScrollView
-          contentContainerStyle={styles.scrollView}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          <View style={styles.cardContainer}>
-          <View  style={{ width: '70%', padding: 3 }}>
-            <TruckCard
-              title="Receiving Pending Truck"
-              count={dispatchCount}
-              loading={loading}
-              error={error}
-              iconName="local-shipping"
-              onPress={() => navigation.navigate("Dispatch Truck List")}
-
-            />
+        {isConnected ? (
+          <ScrollView
+            contentContainerStyle={styles.scrollView}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          >
+            <View style={styles.cardContainer}>
+              <View style={styles.cardWrapper}>
+                <TruckCard
+                  title={t('receivingPendingTruck')}
+                  count={dispatchCount}
+                  loading={loading}
+                  error={error}
+                  iconName="local-shipping"
+                  onPress={() => navigation.navigate("Dispatch Truck List")}
+                />
+              </View>
+              <View style={styles.cardWrapper}>
+                <TruckCard
+                title={t('receivedTruck')}
+                  count={recieveCount}
+                  loading={loading}
+                  error={error}
+                  iconName="directions-bus"
+                  onPress={() => navigation.navigate("Receive Truck List")}
+                />
+              </View>
+              <View style={styles.cardWrapper}>
+                <TruckCard
+              title={t('requestReimbursement')}
+                  count={RequestRempending}
+                  loading={loading}
+                  error={error}
+                  iconName="hourglass-empty"
+                  onPress={() => navigation.navigate("ReimbursementList", { ApprovalStatus: "PENDING" })}
+                />
+              </View>
+              <View style={styles.cardWrapper}>
+                <TruckCard
+                        title={t('paidPayment')}
+                  count={PaymentPaid}
+                  loading={loading}
+                  error={error}
+                  iconName="done"
+                  onPress={() => navigation.navigate("ReimbursementList", { BillPaymentStatus: "PAID", ApprovalStatus: "APPROVED" })}
+                />
+              </View>
+              <View style={styles.cardWrapper}>
+                <TruckCard
+                  title={t('paymentDeclined')}
+                  count={PaymentPaid}
+                  loading={loading}
+                  error={error}
+                  iconName="cancel"
+                  onPress={() => navigation.navigate("ReimbursementList", { BillPaymentStatus: "DECLINE", ApprovalStatus: "APPROVED" })}
+                />
+              </View>
             </View>
-            <View  style={{ width: '70%', padding: 3 }}>
-            <TruckCard
-              title="Received Truck"
-              count={recieveCount}
-              loading={loading}
-              error={error}
-              iconName="directions-bus"
-              onPress={() => navigation.navigate("Receive Truck List")}
-            />
-            </View>
-
-            <View  style={{ width: '70%', padding: 3 }}>
-             <TruckCard
-              title="Request Reimburesment Pending"
-              count={RequestRempending}
-              loading={loading}
-              error={error}
-              iconName="hourglass-empty"
-              onPress={() => navigation.navigate("ReimbursementList", { 
-                ApprovalStatus: "PENDING" 
-              })}
-            />
-                </View>
-
-
-                <View  style={{ width: '70%', padding: 3 }}>
-             <TruckCard
-              title="Payment Paid"
-              count={PaymentPaid}
-              loading={loading}
-              error={error}
-              iconName="done"
-            
-              onPress={() => navigation.navigate("ReimbursementList", { 
-                BillPaymentStatus: "PAID", 
-                ApprovalStatus: "APPROVED"
-              })}
-            />
-                </View>
-
-
-                <View  style={{ width: '70%', padding: 3 }}>  
-                 <TruckCard
-                  title="Payment decline"
-              count={PaymentPaid}
-              loading={loading}
-              error={error}
-              iconName="cancel"
-            
-              onPress={() => navigation.navigate("ReimbursementList", { 
-                BillPaymentStatus: "DECLINE", 
-                ApprovalStatus: "APPROVED"
-                  })}
-                  />
-            </View>
+          </ScrollView>
+        ) : (
+          <View style={styles.noInternetContainer}>
+            <Text style={styles.noInternetText}>No Internet Connection</Text>
           </View>
-        </ScrollView>
+        )}
       </SafeAreaView>
       <Footer />
     </View>
@@ -162,12 +159,25 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap', // Allows wrapping to next row
-    justifyContent: 'center', // Space between items
-   
-    paddingHorizontal: 10,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
   },
-  
+  cardWrapper: {
+    width: '50%',
+    
+ 
+  },
+  noInternetContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noInternetText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'red',
+  },
 });
 
 export default RecieveDhasboard;

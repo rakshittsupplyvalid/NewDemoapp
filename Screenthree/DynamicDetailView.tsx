@@ -5,12 +5,19 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 
 
 interface DynamicDetailViewProps {
+
   title?: string;
   data: Record<string, any>;
   files?: string[];
+
+  
 }
 
-const DynamicDetailView: React.FC<DynamicDetailViewProps> = ({ title, data, files = [] }) => {
+
+
+
+
+const DynamicDetailView: React.FC<DynamicDetailViewProps> = ({ title, data = [] }) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Title Section */}

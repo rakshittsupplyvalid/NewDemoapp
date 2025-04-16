@@ -16,10 +16,13 @@ import Navbar from '../App/Navbar';
 import api from '../service/api/apiInterceptors';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImageViewing from "react-native-image-viewing";
-import { format, isWithinInterval } from 'date-fns';
-import moment from "moment";
 
+import moment from "moment";
+import {useTranslation} from 'react-i18next';
 import { HealthreportStyle } from '../theme/HealthreportStyle';
+ 
+import { useFocusEffect } from '@react-navigation/native';
+
 
 
 const HealthReportlist = () => {
@@ -39,7 +42,20 @@ const HealthReportlist = () => {
   const [pageNumber, setPageNumber] = useState(1);
 
   const [hasMoreData, setHasMoreData] = useState(true);
-  const [pageSize, setPageSize] = useState(10); // Default page size
+  const pageSize = 30; // Default page size
+     const { t ,  i18n } = useTranslation();
+
+
+
+     
+
+ 
+     useFocusEffect(
+      React.useCallback(() => {
+        setSearchQuery('');
+      }, [])
+    );
+
 
 
 
@@ -56,10 +72,11 @@ const HealthReportlist = () => {
       setLoading(false);
     }
   };
+ 
 
 
 
-
+  
   const fetchReports = async (isInitialLoad = false) => {
     if (!hasMoreData || loading || !userId) return;
 
@@ -68,6 +85,8 @@ const HealthReportlist = () => {
       const response = await api.get(
         `/api/healthreport?ReportType=RECEIVE&PageNumber=${pageNumber}&PageSize=${pageSize}&AssayerId=${userId}`
       );
+
+      console.log("Response datasss:", response);
 
       const newReports = response.data || [];
       if (isInitialLoad) {
@@ -102,25 +121,22 @@ const HealthReportlist = () => {
 
   useEffect(() => {
     let filteredData = reports;
-
+  
     if (searchQuery) {
-      filteredData = filteredData.filter(item =>
-        item.assayername.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.trucknumber.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (startDate && endDate) {
       filteredData = filteredData.filter(item => {
-        const reportDate = new Date(item.date);
-        return isWithinInterval(reportDate, { start: startDate, end: endDate });
+        const formattedDate = moment(item.date).add(5, "hours").format("DD-MM-YYYY");
+        return (
+          item.assayername.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.trucknumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          formattedDate.includes(searchQuery)
+        );
       });
     }
-
+  
     setFilteredReports(filteredData);
-  }, [searchQuery, startDate, endDate, reports]);
-
-
+  }, [searchQuery, reports]);
+  
+  
   const fetchReportDetails = async (id: any) => {
     try {
       const response = await api.get(`/api/healthreport/${id}`);
@@ -140,7 +156,7 @@ const HealthReportlist = () => {
 
       <TextInput
         style={HealthreportStyle.searchInput}
-        placeholder="Search Assayer Name and date"
+        placeholder={t('SearchAssayerNameanddate')}
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
@@ -206,22 +222,22 @@ const HealthReportlist = () => {
               <View style={HealthreportStyle.topRightCorner} />
               <View style={HealthreportStyle.bottomLeftCorner} />
               <View style={HealthreportStyle.row}>
-                <Text style={HealthreportStyle.label}>Assayer Name:</Text>
+                <Text style={HealthreportStyle.label}>{t('assyarerName')}</Text>
                 <Text style={HealthreportStyle.value}>{item.assayername}</Text>
               </View>
               <View style={HealthreportStyle.row}>
-                <Text style={HealthreportStyle.label}>Date:</Text>
+                <Text style={HealthreportStyle.label}>{t('Date')}</Text>
                 <Text style={HealthreportStyle.value}>
                   {moment(item.date).add(5, "hours").format("DD-MM-YYYY")}
                 </Text>
               </View>
               <View style={HealthreportStyle.row}>
-                <Text style={HealthreportStyle.label}>Truck Number:</Text>
+                <Text style={HealthreportStyle.label}>{t('TruckNumber')}</Text>
                 <Text style={HealthreportStyle.value}>{item.trucknumber}</Text>
               </View>
               <View style={HealthreportStyle.parentbutton}>
                 <TouchableOpacity style={HealthreportStyle.button} onPress={() => fetchReportDetails(item.id)}>
-                  <Text style={HealthreportStyle.buttonText}>View Report</Text>
+                  <Text style={HealthreportStyle.buttonText}>{t('ViewReport')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -239,19 +255,19 @@ const HealthReportlist = () => {
       <Modal animationType="slide" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
         <View style={HealthreportStyle.modalContainer}>
           <View style={HealthreportStyle.heading}>
-            <Text style={HealthreportStyle.text} >Recieve Health Report Details</Text>
+            <Text style={HealthreportStyle.text} >{t('RecieveHealthReportDetails')}</Text>
           </View>
           <View style={HealthreportStyle.modalContent}>
 
             {selectedReport && (
               <>
                 <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Truck Number:</Text>
+                  <Text style={HealthreportStyle.labelone}>{t('TruckNumber')}</Text>
                   <Text style={HealthreportStyle.valueone}>{selectedReport.trucknumber}</Text>
                 </View>
 
                 <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Date:</Text>
+                  <Text style={HealthreportStyle.labelone}>{t('Date')}</Text>
                   <Text style={HealthreportStyle.valueone}>
                     {new Date(selectedReport.date).toLocaleDateString('en-GB', {
                       day: '2-digit',
@@ -267,7 +283,7 @@ const HealthReportlist = () => {
                 </View>
 
                 <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Approval Status:</Text>
+                  <Text style={HealthreportStyle.labelone}>{t('ApprovalStatus')}:</Text>
                   <Text style={HealthreportStyle.valueone}>{selectedReport.approvalstatus}</Text>
                 </View>
 
@@ -284,15 +300,15 @@ const HealthReportlist = () => {
                         <Text style={styles.valueone}>{parsedData.StorageName}</Text>
                       </View> */}
                       <View style={HealthreportStyle.rowone}>
-                        <Text style={HealthreportStyle.labelone}>Gross Weight:</Text>
+                        <Text style={HealthreportStyle.labelone}>{t('Grossweight')}</Text>
                         <Text style={HealthreportStyle.valueone}>{parsedData.GrossWeight}</Text>
                       </View>
                       <View style={HealthreportStyle.rowone}>
-                        <Text style={HealthreportStyle.labelone}>Net Weight:</Text>
+                        <Text style={HealthreportStyle.labelone}>{t('Netweight')}</Text>
                         <Text style={HealthreportStyle.valueone}>{parsedData.NetWeight}</Text>
                       </View>
                       <View style={HealthreportStyle.rowone}>
-                        <Text style={HealthreportStyle.labelone}>Tare Weight:</Text>
+                        <Text style={HealthreportStyle.labelone}>{t('Tareweight')}</Text>
                         <Text style={HealthreportStyle.valueone}>{parsedData.TareWeight}</Text>
                       </View>
                     </>
@@ -302,7 +318,7 @@ const HealthReportlist = () => {
 
 
                 <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Images:</Text>
+                  <Text style={HealthreportStyle.labelone}>{t('images')}</Text>
                   <TouchableOpacity onPress={() => setShowImages(!showImages)}>
                     <MaterialIcons
                       name={showImages ? 'visibility-off' : 'visibility'}
@@ -345,7 +361,7 @@ const HealthReportlist = () => {
             )}
 
             <TouchableOpacity style={HealthreportStyle.closeButton} onPress={() => setModalVisible(false)}>
-              <Text style={HealthreportStyle.buttonText}>Close</Text>
+              <Text style={HealthreportStyle.buttonText}>{t('Close')}</Text>
             </TouchableOpacity>
           </View>
 

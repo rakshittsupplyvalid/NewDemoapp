@@ -1,15 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Switch, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Switch, ScrollView, SafeAreaView, Platform, Image,  PermissionsAndroid } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import styles from '../theme/Healthreport';
 import moment from "moment";
 import { MMKV } from 'react-native-mmkv';
 import NetInfo from "@react-native-community/netinfo";
-import axios from 'axios';
-import { Picker } from "@react-native-picker/picker";
-
+import { launchCamera, ImagePickerResponse, ImageLibraryOptions } from 'react-native-image-picker';
+import Navbar from "../App/Navbar";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useTranslation } from 'react-i18next';
 
 const storage = new MMKV();
+
+
+type ImageAsset = {
+  uri: string;
+  fileName: string;
+  type: string;
+};
 
 const OfflineForm = () => {
 
@@ -19,41 +27,33 @@ const OfflineForm = () => {
   const [tareWeight, setTareWeight] = useState('');
   const [bagCount, setBagCount] = useState('');
   const [size, setSize] = useState('');
+    const { t, i18n } = useTranslation();
 
 
 
   const [isComment, setIsComment] = useState(false);
+
   const [open, setOpen] = useState(false);
 
-  const [selectedCompany, setSelectedCompany] = useState("");
-  const [selectedCompanyName, setSelectedCompanyName] = useState("");
-  const [selectedbranchs, setSelectedbranch] = useState("");
-  const [selectedDistrict, setSelecteddistrict] = useState("");
-
-
-  const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
-  const [previousSteps, setPreviousSteps] = useState<number[]>([]);
-  const [companyId, setCompanyId] = useState('');
-  const [branchId, setBranchId] = useState('');
-  const [locationId, setLocationId] = useState('');
 
+  const [previousSteps, setPreviousSteps] = useState<number[]>([]);
 
   const [stainingColour, setStainingColour] = useState(false);
+
   const [stainingColourPercent, setStainingColourPercent] = useState('');
+  
   const [blackSmutOnion, setBlackSmutOnion] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
-  const [selectedReport, setSelectedReport] = useState(null);
-
   const [BlackSmutPercent, setBlackSmatPercent] = useState('');
   const [sproutedOnion, setSproutedOnion] = useState(false);
   const [sproutedPercent, setSproutedPercent] = useState('');
   const [spoiledOnion, setSpoiledOnion] = useState(false);
   const [spoiledPercent, setSpoiledPercent] = useState('');
-  const [onionSkin, setOnionSkin] = useState('SINGLE');
+    const [onionSkin, setOnionSkin] = useState('DOUBLE');
   const [moisture, setMoisture] = useState('DRY');
   const [onionSkinPercent, setOnionSkinPercent] = useState('');
   const [moisturePercent, setMoisturePercent] = useState('');
@@ -62,17 +62,31 @@ const OfflineForm = () => {
   const [SpoliedPercent, setSpoliedPercent] = useState('');
   const [SpoliedBranch, setSpoliedBranch] = useState('');
   const [SpoliedComment, setSpoliedComment] = useState('');
+    const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
 
   const today = new Date();
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(today.getMonth() - 3);
 
-
-
-
-
-
-
+  const resetForm = () => {
+    setTruckNumber('');
+    setGrossWeight('');
+    setTareWeight('');
+    setNetWeight('');
+    setBagCount('');
+    setSize('');
+    setDate('');
+    setStainingColourPercent('');
+    setBlackSmatPercent('');
+    setSproutedPercent('');
+    setSpoiledPercent('');
+    setOnionSkinPercent('');
+    setMoisturePercent('');
+    setSpoliedPercent('');
+    setSpoliedComment('');
+    setImageUri(null); // 
+  };
+  
 
   const saveFormOffline = (formData) => {
     try {
@@ -90,35 +104,198 @@ const OfflineForm = () => {
       // **Check Saved Data**
       let savedData = storage.getString('offlineForms');
       console.log('Saved Offline Forms:', JSON.stringify(JSON.parse(savedData), null, 2));
-
     } catch (error) {
       console.error('Error saving form:', error);
     }
   };
 
+    const requestCameraPermission = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.CAMERA
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('Camera permission granted');
+            openCamera(); // **Agar permission mil gayi to camera open hoga**
+          } else {
+            console.log('Camera permission denied');
+          }
+        } catch (err) {
+          console.warn(err);
+        }
+      } else {
+        openCamera(); // iOS ke liye directly open kar do
+      }
+    };
+  
+    const openCamera = () => {
+      launchCamera(
+        {
+          mediaType: 'photo',
+          includeBase64: false,
+          cameraType: 'back',
+          quality: 0.4,
+          maxWidth: 700,
+          maxHeight: 700,
+        },
+        (response: ImagePickerResponse) => {
+          if (response.didCancel) {
+            console.log('User cancelled image picker');
+          } else if (response.errorMessage) {
+            console.log('ImagePicker Error: ', response.errorMessage);
+          } else if (response.assets && response.assets.length > 0) {
+            const capturedImage = response.assets[0]; 
+  
+            console.log('Captured image URI:', capturedImage.uri); // Debugging ke liye
+  
+            const image = {
+              uri: capturedImage.uri ?? '',
+              fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
+              type: capturedImage.type || 'image/jpeg',
+            };
+  
+            setImageUri((prevImages) => [...prevImages, image]); // **Naye images add honge**
+          }
+        }
+      );
+    };
 
 
 
 
 
   const handleNext = (nextStep: number) => {
-    setPreviousSteps([...previousSteps, currentStep]);
-    setCurrentStep(nextStep);
+
+    const validateTruckNumber = (truckNumber: string) => {
+      truckNumber = truckNumber.trim().toUpperCase();
+
+      // Length check (minimum length 6 and maximum length 12)
+      if (truckNumber.length < 8 || truckNumber.length > 12) {
+          return false;
+      }
+
+      // Check for only alphabets and numbers (no special characters)
+      if (!/^[A-Za-z0-9]+$/.test(truckNumber)) {
+          return false;
+      }
+
+      return true;
+  };
+
+     if (currentStep === 1) {
+          if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
+            Alert.alert("Validation Error", "All fields are required!");
+            return;
+          }
+          if (!validateTruckNumber(truckNumber)) {
+            Alert.alert("Validation Error", "Enter a Valid Truck Number!");
+            return;
+        }
+        }
+    
+     
+    
+        if (currentStep === 2) {
+          const validations = [
+            { key: 'Staining Colour', value: stainingColour, percent: stainingColourPercent },
+            { key: 'Black Smut Onion', value: blackSmutOnion, percent: BlackSmutPercent },
+            { key: 'Sprouted Onion', value: sproutedOnion, percent: sproutedPercent },
+            { key: 'Spoiled Onion', value: spoiledOnion, percent: spoiledPercent },
+          ];
+        
+          for (const item of validations) {
+            if (item.value) {
+              if (!item.percent.trim()) {
+                Alert.alert("Validation error", `${item.key} Percent is required!`);
+                return;
+              }
+        
+              const percent = parseFloat(item.percent.trim());
+              if (isNaN(percent) || percent < 1 || percent > 100) {
+                Alert.alert("Validation error", `${item.key} Percent must be between 1 and 100!`);
+                return;
+              }
+            }
+          }
+        
+          // Onion Skin
+          if (onionSkin === 'SINGLE') {
+            if (!onionSkinPercent.trim()) {
+              Alert.alert("Validation error", `Onion Skin Percent is required!`);
+              return;
+            }
+            const percent = parseFloat(onionSkinPercent.trim());
+            if (isNaN(percent) || percent < 1 || percent > 100) {
+              Alert.alert("Validation error", `Onion Skin Percent must be between 1 and 100!`);
+              return;
+            }
+          }
+        
+          // Moisture
+          if (moisture === 'WET') {
+            if (!moisturePercent.trim()) {
+              Alert.alert("Validation error", `Moisture Percent is required!`);
+              return;
+            }
+            const percent = parseFloat(moisturePercent.trim());
+            if (isNaN(percent) || percent < 1 || percent > 100) {
+              Alert.alert("Validation error", `Moisture Percent must be between 1 and 100!`);
+              return;
+            }
+          }
+        
+
+          // Spoiled Percent field (manual one)
+          if (isSpoiledPercentVisible) {
+            // Spoiled Percent validation
+            if (!SpoliedPercent.trim()) {
+              Alert.alert("Validation error", `Spoiled Percent is required!`);
+              return;
+            }
+          
+            const percent = parseFloat(SpoliedPercent.trim());
+            if (isNaN(percent) || percent < 1 || percent > 100) {
+              Alert.alert("Validation error", `Spoiled Percent must be between 1 and 100!`);
+              return;
+            }
+          
+            // Spoiled Comment validation
+            if (!SpoliedComment.trim()) {
+              Alert.alert("Validation error", "Spoiled Comment is required!");
+              return;
+            }
+          
+            // Branch Person Name validation
+            if (!SpoliedBranch.trim()) {
+              Alert.alert("Validation error", "Branch Person name is required!");
+              return;
+            }
+          }
+          
+        }
+        
+            setPreviousSteps([...previousSteps, currentStep]);
+            setCurrentStep(nextStep);
+
+ 
+  };
+
+  const handleSubmit = () => {
 
     // Save form locally if offline
     NetInfo.fetch().then(state => {
       if (!state.isConnected) {
         saveFormOffline({
-          truckNumber, grossWeight, tareWeight, netWeight, bagCount, size, date, stainingColourPercent, BlackSmutPercent, sproutedPercent, spoiledPercent, onionSkinPercent, moisturePercent, SpoliedPercent , SpoliedComment
+          truckNumber, grossWeight, tareWeight, netWeight, bagCount, size, date, stainingColourPercent, BlackSmutPercent, sproutedPercent, spoiledPercent, onionSkinPercent, moisturePercent, SpoliedPercent , SpoliedComment , imageUri
         });
       }
     });
+  
+    Alert.alert("Success", "Form submitted successfull!");
   };
 
-  const handlePrevious = (
-
-
-  ) => {
+  const handlePrevious = () => {
     if (previousSteps.length > 0) {
       const lastStep = previousSteps[previousSteps.length - 1]; // Get the last step
 
@@ -137,13 +314,13 @@ const OfflineForm = () => {
   const handleConfirm = (selectedDate: any, type: "date" | "time") => {
     if (selectedDate) {
       if (type === "date") {
-        const formattedDate = moment(selectedDate).format("YYYY-MM-DD"); // 🔹 UTC hata diya
+        const formattedDate = moment(selectedDate).format("YYYY-MM-DD"); //  UTC hata diya
         setDate(formattedDate);
         console.log("Formatted date:", formattedDate);
         hideDatePicker();
         setTimePickerVisibility(true);
       } else if (type === "time") {
-        const formattedTime = moment(selectedDate).format("HH:mm:ss"); // 🔹 Local time liya
+        const formattedTime = moment(selectedDate).format("HH:mm:ss"); //  Local time liya
 
         setDate((prevDate) => {
           const dateTime = `${prevDate} ${formattedTime}`;
@@ -165,10 +342,13 @@ const OfflineForm = () => {
   
 
 
+
   return (
 
 
-    <View style={styles.offlinecontainers}>
+    <SafeAreaView style={styles.container}>
+
+<Navbar />
 
       <ScrollView contentContainerStyle={styles.scrollView}>
 
@@ -179,7 +359,7 @@ const OfflineForm = () => {
             <TextInput
               maxLength={12}
               style={styles.input}
-              placeholder="Truck Number"
+              placeholder={t('TruckNumber')}
               value={truckNumber}
               autoCapitalize="characters"
               onChangeText={(text) => setTruckNumber(text.toUpperCase())}
@@ -188,7 +368,7 @@ const OfflineForm = () => {
 
             <TextInput
               style={styles.input}
-              placeholder="Gross Weight(KG)"
+              placeholder={t('Grossweight')}
               value={grossWeight}
               onChangeText={setGrossWeight}
               keyboardType="numeric"
@@ -196,14 +376,14 @@ const OfflineForm = () => {
 
             <TextInput
               style={styles.input}
-              placeholder="Tare Weight(KG)"
+              placeholder={t('Tareweight')}
               value={tareWeight}
               onChangeText={setTareWeight}
               keyboardType="numeric"
             />
             <TextInput
               style={styles.input}
-              placeholder="Net Weight(KG)"
+              placeholder={t('Netweight')}
               value={netWeight}
 
               keyboardType="numeric"
@@ -239,8 +419,8 @@ const OfflineForm = () => {
                   editable={false} // User manually edit nahi kar sakta
                   value={
                     date
-                      ? `${new Date(date).toLocaleDateString()} ${time ? new Date(time).toLocaleTimeString() : ""}`
-                      : "Select Date & Time"
+                        ? `${new Date(date).toLocaleDateString()} ${time ? new Date(time).toLocaleTimeString() : ""}`
+                        : t('selecteddate')
                   }
                 />
               </View>
@@ -251,7 +431,7 @@ const OfflineForm = () => {
 
             <TextInput
               style={styles.input}
-              placeholder="Bag Count"
+              placeholder={t('Bagcount')}
               value={bagCount}
               onChangeText={setBagCount}
               keyboardType="numeric"
@@ -260,7 +440,7 @@ const OfflineForm = () => {
               isComment == false ?
                 (<TextInput
                   style={styles.input}
-                  placeholder="Size"
+                  placeholder={t('size')}
                   value={size}
                   onChangeText={setSize}
                   keyboardType="numeric"
@@ -270,30 +450,12 @@ const OfflineForm = () => {
                 )
             }
 
-
-            <View style={styles.buttoncontent} >
+             <View style={styles.buttoncontent} >
               <TouchableOpacity style={styles.button} onPress={() => handleNext(currentStep + 1)}>
-                <Text style={styles.buttonText}>Next</Text>
+                <Text style={styles.buttonText}>{t('Next')}</Text>
               </TouchableOpacity>
-
-
-              <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                <Text style={styles.buttonText}>Previous</Text>
-              </TouchableOpacity>
-
-              {/* 
-                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>Submit</Text>
-                </TouchableOpacity> */}
 
             </View>
-
-
-
-
-
-
-
           </View>
         )}
 
@@ -303,7 +465,7 @@ const OfflineForm = () => {
 
             <View style={styles.thirdcontainers}>
               <View style={styles.switchContainer}>
-                <Text style={styles.text}>Staining Colour</Text>
+                <Text style={styles.text}>{t("stainingColor")}</Text>
                 <Switch
                   value={stainingColour}
                   onValueChange={(value) => {
@@ -317,7 +479,7 @@ const OfflineForm = () => {
               {stainingColour && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Staining Colour Percent"
+                  placeholder={t('stainingcolorpercent')}
                   value={stainingColourPercent}
                   onChangeText={(text) => setStainingColourPercent(text)}
                   keyboardType="numeric"
@@ -325,21 +487,21 @@ const OfflineForm = () => {
               )}
 
               <View style={styles.switchContainer}>
-                <Text style={styles.text}>Black Smut Onion</Text>
+                <Text style={styles.text}>{t('BlacksmutOnion')}</Text>
                 <Switch
                   value={blackSmutOnion}
                   onValueChange={(value) => {
                     setBlackSmutOnion(value);
                     if (!value) setBlackSmatPercent('');
                   }}
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }} // Red track when ON
+                  trackColor={{ false: '#F6A00191', true: '#FF9500' }} 
                   thumbColor={stainingColour ? 'white' : '#f4f3f4'} // White thumb when ON
                 />
               </View>
               {blackSmutOnion && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Black Smut Percent"
+                  placeholder={t('BlacksmutOnionpercent')}
                   value={BlackSmutPercent}
                   onChangeText={(text) => setBlackSmatPercent(text)}
                   keyboardType="numeric"
@@ -348,7 +510,7 @@ const OfflineForm = () => {
 
 
               <View style={styles.switchContainer}>
-                <Text style={styles.text}>Sprouted Onion</Text>
+                <Text style={styles.text}>{t('SproutedOnion')}</Text>
                 <Switch
                   value={sproutedOnion}
                   onValueChange={(value) => {
@@ -362,7 +524,7 @@ const OfflineForm = () => {
               {sproutedOnion && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Sprouted Percent"
+                  placeholder={t('SproutedOnionpercent')}
                   value={sproutedPercent}
                   onChangeText={(text) => setSproutedPercent(text)}
                   keyboardType="numeric"
@@ -370,7 +532,7 @@ const OfflineForm = () => {
               )}
 
               <View style={styles.switchContainer}>
-                <Text style={styles.text}>Spoiled Onion</Text>
+                <Text style={styles.text}>{t('SpoiledOnion')}</Text>
                 <Switch
                   value={spoiledOnion}
                   onValueChange={(value) => {
@@ -384,90 +546,92 @@ const OfflineForm = () => {
               {spoiledOnion && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Spoiled Percent"
+                  placeholder={t('SpoiledOnionpercent')}
                   value={spoiledPercent}
                   onChangeText={(text) => setSpoiledPercent(text)}
                   keyboardType="numeric"
                 />
               )}
 
-              {/* OnionSkin Dropdown */}
-              <View style={styles.dropdownContainer}>
-                <Text style={styles.text}>Onion Skin</Text>
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={onionSkin}
-                    onValueChange={(itemValue) => {
-                      setOnionSkin(itemValue);
-                      if (itemValue === "DOUBLE") {
-                        setOnionSkinPercent("0"); // DOUBLE select hone par value 0 set karo
+<View style={styles.switchContainer}>
+                  <Text style={styles.text}>
+                    {t('Onionskin') + ' : ' + (onionSkin === 'SINGLE' ? t('Single') : t('Double'))}
+                  </Text>
+
+                  <Switch
+                    value={onionSkin === "SINGLE"}
+                    onValueChange={(value) => {
+                      if (value) {
+                        setOnionSkin("SINGLE");
                       } else {
-                        setOnionSkinPercent(""); // SINGLE ke liye input blank rakho
+                        setOnionSkin("DOUBLE");
+                        setOnionSkinPercent(""); // DOUBLE hone par input clear
                       }
                     }}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="DOUBLE" value="DOUBLE" />
-                    <Picker.Item label="SINGLE" value="SINGLE" />
-                  </Picker>
+                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
+                    thumbColor={onionSkin === "SINGLE" ? "white" : "#f4f3f4"}
+                  />
                 </View>
-              </View>
 
-              <TextInput
-                style={styles.input}
-                placeholder="Onion Skin Percent"
-                value={onionSkinPercent}
-                onChangeText={setOnionSkinPercent}
-                keyboardType="numeric"
-                editable={onionSkin === "SINGLE"} // SINGLE hone par editable, DOUBLE hone par non-editable
-              />
+                {onionSkin === "SINGLE" && (
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('Onionskinsinglepercent')}
+                    value={onionSkinPercent}
+                    onChangeText={setOnionSkinPercent}
+                    keyboardType="numeric"
+                  />
+                )}
 
 
 
-              {/* Moisture Dropdown */}
-              <View style={styles.dropdownContainer}>
-                <Text style={styles.text}>Moisture</Text>
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={moisture}
-                    onValueChange={(itemValue) => {
-                      setMoisture(itemValue);
-                      if (itemValue === "DRY") {
-                        setMoisturePercent("0"); // DRY select hone par 0 set karo
+
+
+<View style={styles.switchContainer}>
+                  <Text style={styles.text}>
+                    {t('Moisture') + ' : ' + (moisture === 'WET' ? t('Wet') : t('Dry'))}
+
+                  </Text>
+                  <Switch
+                    value={moisture === "WET"}
+                    onValueChange={(value) => {
+                      if (value) {
+                        setMoisture("WET");
                       } else {
-                        setMoisturePercent(""); // WET hone par blank input allow karo
+                        setMoisture("DRY");
+                        setMoisturePercent(""); // DRY hone par input clear
                       }
                     }}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="DRY" value="DRY" />
-                    <Picker.Item label="WET" value="WET" />
-                  </Picker>
+                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
+                    thumbColor={moisture === "WET" ? "white" : "#f4f3f4"}
+                  />
                 </View>
-              </View>
 
-              <TextInput
-                style={styles.input}
-                placeholder="Moisture Percent"
-                value={moisturePercent}
-                onChangeText={setMoisturePercent}
-                keyboardType="numeric"
-                editable={moisture === "WET"} // Sirf WET hone par editable hoga
-              />
+                {moisture === "WET" 
+                &&
+                 (
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('Moisturewetpercent')}
+                    value={moisturePercent}
+                    onChangeText={setMoisturePercent}
+                    keyboardType="numeric"
+                  />
+                )}
 
-
-
-              <Text style={styles.text}>Spoiled</Text>
+              <Text style={styles.text}>{t('Spoiled')}</Text>
 
               <Switch
                 value={isSpoiledPercentVisible}
                 onValueChange={setIsSpoiledPercentVisible}
+                trackColor={{ false: '#F6A00191', true: '#FF9500' }}
+                thumbColor={moisture === "WET" ? "white" : "#f4f3f4"}
               />
 
               {isSpoiledPercentVisible && (
                 <TextInput
                   style={styles.input}
-                  placeholder="Spoiled Percent"
+                  placeholder={t('spoiledperecent')}
                   value={SpoliedPercent}
                   onChangeText={setSpoliedPercent}
                   keyboardType="numeric"
@@ -476,7 +640,7 @@ const OfflineForm = () => {
 
               <TextInput
                 style={styles.input}
-                placeholder="Type Comments"
+                placeholder={t('typecomment')}
                 value={SpoliedComment}
                 onChangeText={setSpoliedComment}
               />
@@ -484,7 +648,7 @@ const OfflineForm = () => {
 
               <TextInput
                 style={styles.input}
-                placeholder="Branch Person name"
+                placeholder={t('branchpersonname')}
                 value={SpoliedBranch}
                 onChangeText={setSpoliedBranch}
 
@@ -495,13 +659,13 @@ const OfflineForm = () => {
      
 
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>Previous</Text>
+                  <Text style={styles.buttonText}>{t('Previous')}</Text>
                 </TouchableOpacity>
 
 
 
                 <TouchableOpacity style={styles.button} onPress={() => handleNext(currentStep + 1)}>
-                  <Text style={styles.buttonText}>Submit</Text>
+                  <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
 
 
@@ -518,11 +682,55 @@ const OfflineForm = () => {
           </View>
         )}
 
+
+{currentStep === 3 && (
+            <View>
+              <View style={styles.centerContainer}>
+                <Text style={styles.title}>{t('CaptureImage')}</Text>
+              </View>
+
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
+                  <MaterialIcons name="camera" size={30} color="white" />
+                  <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
+                </TouchableOpacity>
+
+
+
+              </View>
+              {/* <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={openGallery}>
+                  <MaterialIcons name="photo-library" size={30} color="white" />
+                  <Text style={styles.buttonText}>Pick from Gallery</Text>
+                </TouchableOpacity>
+              </View> */}
+
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+                  <Text style={styles.buttonText}>{t('Previous')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>{t('submit')}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Image Grid */}
+              <View style={styles.imageGrid}>
+                {imageUri.map((img, index) => (
+                  <View key={index} style={styles.imageContainer}>
+                    <Image source={{ uri: img.uri }} style={styles.image} />
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+
       </ScrollView>
 
 
 
-    </View>
+      </SafeAreaView>
 
   );
 };

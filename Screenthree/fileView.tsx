@@ -41,10 +41,14 @@ const FileView: React.FC<FileViewProps> = ({ fileUris }) => {
   const getFullUri = (uri: string) => {
     if (uri.startsWith('http')) {
       return uri;
-    } else {
+
+    } else 
+    {
       return `${baseUrl}${uri}`;
     }
   };
+
+
 
   useEffect(() => {
     setBaseUrl(api.getUri());
@@ -57,8 +61,11 @@ const FileView: React.FC<FileViewProps> = ({ fileUris }) => {
   }, [fileUris]);
 
 
+
   
   const renderFile = (uri: string) => {
+   
+    
     const fullUri = getFullUri(uri);
     const fileType = fileTypes[uri];
   
@@ -79,7 +86,7 @@ const FileView: React.FC<FileViewProps> = ({ fileUris }) => {
       case 'document':
         return (
           <View key={uri} style={styles.documentContainer}>
-            <Text>Document file cannot be previewed directly.</Text>
+            <Text>Document file cannot be previewed directlyjjjj.</Text>
             <Text onPress={() => Linking.openURL(fullUri)} style={styles.linkText}>
               Open in external viewer
             </Text>

@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { launchCamera, ImagePickerResponse, launchImageLibrary } from 'react-native-image-picker';
+import {useTranslation} from 'react-i18next';
 
 
 import api from '../service/api/apiInterceptors';
@@ -57,6 +58,7 @@ const ReimbursementForm = () => {
 
 
   const [isModalVisible, setModalVisible] = useState(false);
+   const { t ,  i18n } = useTranslation();
   
 
 
@@ -178,9 +180,6 @@ const ReimbursementForm = () => {
       return false;
     }
 
-  
-
-
 
     if (!BillType) {
       Alert.alert('Validation Error', 'Please select a bill type');
@@ -286,7 +285,7 @@ const ReimbursementForm = () => {
 
   return (
     
-    <SafeAreaView style={styles.container}>
+    <ScrollView style={styles.container}>
 
       <Navbar />
       <FlatList
@@ -294,7 +293,7 @@ const ReimbursementForm = () => {
         keyExtractor={(item) => item.key}
         renderItem={() => (
           <View style={styles.formContent}>
-            <Text style={styles.label}>Date</Text>
+            <Text style={styles.label}>{t('Date')}</Text>
             <View style={styles.inputWrapper}>
 
      
@@ -302,7 +301,7 @@ const ReimbursementForm = () => {
             <TouchableOpacity onPress={() => setShowDatePicker(true)} >
             <TextInput
               style={styles.input}
-              placeholder="Select Date"
+              placeholder={t('selecteddate')}
               value={formData.date}
               onChangeText={(text) => handleInputChange('date', text)}
               editable={false}
@@ -329,7 +328,7 @@ const ReimbursementForm = () => {
               />
             )}
 
-            <Text style={styles.label}>Bill Type</Text>
+            <Text style={styles.label}>{t("Billtype")}</Text>
             <DropDownPicker
               open={billTypeOpen}
               value={formData.BillType}
@@ -346,27 +345,27 @@ const ReimbursementForm = () => {
                 })
               }
               setItems={setBillTypeItems}
-              placeholder="Select Bill Type"
+              placeholder={t('selectBilltype')}
               style={styles.dropdown}
             />
 
             {/* Only show Start and End Trip Reading if Bill Type is 'Petrol' */}
             {formData.BillType === 'Petrol' && (
               <>
-                <Text style={styles.label}>Start Trip Reading</Text>
+                <Text style={styles.label}>{t("StartTripReading")}</Text>
                 <TextInput
                   style={styles.input}
                   
-                  placeholder="Start Trip Reading"
+                  placeholder={t("StartTripReading")}
                   keyboardType="numeric"
                   value={formData.StartTripReading}
                   onChangeText={(text) => handleInputChange('StartTripReading', text)}
                 />
 
-                <Text style={styles.label}>End Trip Reading</Text>
+                <Text style={styles.label}>{t("EndTripReading")}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="End Trip Reading"
+                  placeholder={t("EndTripReading")}
                   keyboardType="numeric"
                   value={formData.EndTripReading}
                   onChangeText={(text) => handleInputChange('EndTripReading', text)}
@@ -374,19 +373,19 @@ const ReimbursementForm = () => {
               </>
             )}
 
-            <Text style={styles.label}>Amount</Text>
+            <Text style={styles.label}>{t("Amount")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Amount"
+              placeholder={t("Amount")}
               keyboardType="numeric"
               value={formData.Amount}
               onChangeText={(text) => handleInputChange('Amount', text)}
             />
 
-            <Text style={styles.label}>Purpose</Text>
+            <Text style={styles.label}>{t("purpose")}</Text>
             <TextInput
               style={styles.input}
-              placeholder="Purpose"
+              placeholder={t("purpose")}
                 
               value={formData.Purpose}
               onChangeText={(text) => handleInputChange('Purpose', text)}
@@ -403,7 +402,7 @@ const ReimbursementForm = () => {
 
 <View>
   <Pressable style={styles.button} onPress={toggleModal}>
-    <Text style={styles.buttonText}>Capture image</Text>
+    <Text style={styles.buttonText}>{t("CaptureImage")}</Text>
   </Pressable>
   
   <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
@@ -423,12 +422,12 @@ const ReimbursementForm = () => {
 
 }}>
          <Pressable onPress={handleTakePhoto} style={styles.pressable}>
-    <Text style={styles.buttonText}>Camera</Text>
+    <Text style={styles.buttonText}>{t("Camera")}</Text>
     <MaterialIcons name="camera" size={30} color="#fff" />
   </Pressable>
 
   <Pressable onPress={handlePickImage} style={styles.pressable} >
-    <Text style={styles.buttonText}>Gallery</Text>
+    <Text style={styles.buttonText}>{t("Gallery")}</Text>
     <MaterialIcons name="photo-library" size={30} color="#fff" />
   </Pressable>
 
@@ -489,9 +488,9 @@ const ReimbursementForm = () => {
           </View>
         )}
         keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled={true}
+        scrollEnabled={false} 
       />
-    </SafeAreaView>
+    </ScrollView>
  
   
   );

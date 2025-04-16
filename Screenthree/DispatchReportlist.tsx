@@ -1,31 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View, TextInput } from 'react-native';
 import Navbar from '../App/Navbar';
 import api from '../service/api/apiInterceptors';
-import { format, isWithinInterval } from 'date-fns';
+import moment from 'moment';
+import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from '@react-navigation/native';
 
-import moment from "moment";
-
-const DispatchReportlist = () => {
+const DispatchReportList = () => {
   const [reports, setReports] = useState([]);
+  const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [pageNumber, setPageNumber] = useState(1);
   const [hasMoreData, setHasMoreData] = useState(true);
-  const pageSize = 10;
+  const pageSize = 30;
+  const { t } = useTranslation();
+
+  useFocusEffect(
+    useCallback(() => {
+      setSearchQuery('');
+      setPageNumber(1);
+      setHasMoreData(true);
+    }, [])
+  );
 
   const fetchHealthReports = async () => {
     if (!hasMoreData || loading) return;
     setLoading(true);
-
     try {
-      const response = await api.get(
-        `/api/healthreport?ReportType=DISPATCH&PageNumber=${pageNumber}&PageSize=${pageSize}`
-      );
-
+      const url = `/api/healthreport?ReportType=DISPATCH&PageNumber=${pageNumber}&PageSize=${pageSize}`;
+      const response = await api.get(url);
       const newReports = response.data || [];
+      const updatedReports = pageNumber === 1 ? newReports : [...reports, ...newReports];
 
-      setReports((prevReports) => (pageNumber === 1 ? newReports : [...prevReports, ...newReports]));
-
+      setReports(updatedReports);
+      setFilteredReports(filterReports(updatedReports, searchQuery));
       if (newReports.length < pageSize) {
         setHasMoreData(false);
       }
@@ -36,22 +45,47 @@ const DispatchReportlist = () => {
     }
   };
 
+  const filterReports = (data, query) => {
+    if (!query) return data;
+    const lowerQuery = query.toLowerCase();
+    return data.filter(item => {
+      const formattedDate = moment(item.date).add(5, "hours").format("DD-MM-YYYY");
+      return (
+        item.trucknumber?.toLowerCase().includes(lowerQuery) ||
+        item.assayername?.toLowerCase().includes(lowerQuery) ||
+        formattedDate.includes(lowerQuery)
+      );
+    });
+  };
+
   useEffect(() => {
     fetchHealthReports();
-  }, [pageNumber]); // Dependency me pageNumber add kiya
+  }, [pageNumber]);
+
+  useEffect(() => {
+    setFilteredReports(filterReports(reports, searchQuery));
+  }, [searchQuery, reports]);
 
   const handleLoadMore = () => {
     if (!loading && hasMoreData) {
-      setPageNumber((prevPage) => prevPage + 1);
+      setPageNumber(prevPage => prevPage + 1);
     }
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <Navbar />
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Search Truck, Assayer or Date"
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={(text) => setSearchQuery(text)}
+        />
+      </View>
 
       <FlatList
-        data={reports}
+        data={filteredReports}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.one}>
@@ -59,15 +93,15 @@ const DispatchReportlist = () => {
               <View style={styles.topRightCorner} />
               <View style={styles.bottomLeftCorner} />
               <View style={styles.row}>
-                <Text style={styles.label}>Assayer Name:</Text>
+                <Text style={styles.label}>{t('assyarerName')}</Text>
                 <Text style={styles.value}>{item.assayername}</Text>
               </View>
               <View style={styles.row}>
-              <Text style={styles.label}>Date:</Text>
-              <Text style={styles.value}>{moment(item.date).format('DD-MM-YYYY')}</Text>
+                <Text style={styles.label}>{t('Date')}</Text>
+                <Text style={styles.value}>{moment(item.date).format('DD-MM-YYYY')}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Truck Number</Text>
+                <Text style={styles.label}>{t('TruckNumber')}</Text>
                 <Text style={styles.value}>{item.trucknumber}</Text>
               </View>
             </View>
@@ -76,13 +110,14 @@ const DispatchReportlist = () => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={loading ? <ActivityIndicator size="large" color="blue" /> : null}
+        ListEmptyComponent={!loading && <Text style={{ textAlign: 'center', marginTop: 20 }}>No Data Found</Text>}
       />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  one: { paddingHorizontal: 30 },
+  one: { paddingHorizontal: 30, backgroundColor: 'white' },
   card: {
     paddingHorizontal: 20,
     paddingVertical: 40,
@@ -113,6 +148,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#F79B00',
     borderBottomLeftRadius: 10,
   },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#ffffff',
+  },
+  searchInput: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
 });
 
-export default DispatchReportlist;
+export default DispatchReportList;
+

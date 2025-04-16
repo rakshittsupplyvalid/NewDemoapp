@@ -1,15 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View , TextInput } from 'react-native';
 import Navbar from '../App/Navbar';
 import api from '../service/api/apiInterceptors';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/Type';
 import moment from 'moment';
+import {useTranslation} from 'react-i18next';
+import { useFocusEffect } from '@react-navigation/native';
 
 type DispatchRecieve = StackNavigationProp<RootStackParamList, 'DispatchRecieve'>;
 
-const PAGE_SIZE = 2; // Define the number of items per page
+const PAGE_SIZE = 30 ; 
 
 const Dispatchlist = () => {
   const navigation = useNavigation<DispatchRecieve>();
@@ -17,6 +19,19 @@ const Dispatchlist = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+
+     const { t ,  i18n } = useTranslation();
+
+
+      useFocusEffect(
+         useCallback(() => {
+           setSearchQuery('');
+           setPage(1);
+           setHasMore(true);
+         }, [])
+       );
 
   const fetchHealthReports = async (pageNumber: number) => {
     if (!hasMore) return;
@@ -34,6 +49,23 @@ const Dispatchlist = () => {
     }
   };
 
+  const filteredReports = reports.filter(item => {
+    const formattedDate = moment(item.dispatchdate).format('DD-MM-YYYY');
+    const quantity = String(item.quantitymt);
+  
+    return (
+      Object.entries(item).some(([key, value]) =>
+        typeof value === 'string' &&
+        key !== 'quantitymt' && key !== 'dispatchdate' &&
+        value.toLowerCase().includes(searchQuery.toLowerCase())
+      ) ||
+      formattedDate.includes(searchQuery) ||
+      quantity.includes(searchQuery)
+    );
+  });
+  
+  
+
   useEffect(() => {
     fetchHealthReports(page);
   }, [page]);
@@ -48,41 +80,53 @@ const Dispatchlist = () => {
     <SafeAreaView style={styles.container}>
       <Navbar />
 
+      <View style={styles.searchContainer}> 
+
+   
+      <TextInput
+  placeholder={t('Search')}
+  value={searchQuery}
+  onChangeText={setSearchQuery}
+  style={styles.searchInput}
+/>
+</View>
+
+
       <FlatList
-        data={reports}
+       data={filteredReports}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.cardContainer}>
             <View style={styles.dispatchbranchContainer}>
               <View style={styles.row}>
-                <Text style={styles.labelheading}>Dispatch Branch:</Text>
+                <Text style={styles.labelheading}>{t('DispatchBranch')}</Text>
                 <Text style={styles.valueheading}>{item.dispatchbranch}</Text>
               </View>
             </View>
 
             <View style={styles.card}>
               <View style={styles.row}>
-                <Text style={styles.label}>District:</Text>
+                <Text style={styles.label}>{t('District')}:</Text>
                 <Text style={styles.value}>{item.destinationdistrict}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Quantity:</Text>
+                <Text style={styles.label}>{t('Quantity')}</Text>
                 <Text style={styles.value}>{item.quantitymt}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Date:</Text>
+                <Text style={styles.label}>{t('Date')}</Text>
                 <Text style={styles.value}>{moment(item.dispatchdate).format('DD-MM-YYYY')}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Truck Number:</Text>
+                <Text style={styles.label}>{t('TruckNumber')}</Text>
                 <Text style={styles.value}>{item.trucknumber}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Transporter:</Text>
+                <Text style={styles.label}>{t('Transporter')}</Text>
                 <Text style={styles.value}>{item.transportername}</Text>
               </View>
               <View style={styles.row}>
-                <Text style={styles.label}>Dispatch Type:</Text>
+                <Text style={styles.label}>{t('DispatchType')}</Text>
                 <Text style={styles.value}>{item.dispatchtype}</Text>
               </View>
             </View>
@@ -112,6 +156,20 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f6a001',
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#ffffff',
+  },
+  searchInput: {
+    margin: 10,
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9'
   },
   card: {
     backgroundColor: '#FFF',

@@ -9,7 +9,7 @@ import Federation from '../MainComponent/ReportOffline';
 
 import Navbar from '../App/Navbar';
 
-import SwitchScreens from '../MainComponent/SwitchScreens';
+
 import DispatchDrawernavigator from './DispatchDrawernavigator';
 import DispatchRecieve from '../Screenthree/DispatchRecieve';
 import ReimbursementList from '../Screenthree/ReimbursementList';
@@ -18,6 +18,8 @@ import HealthReport from '../Screenthree/HealthReport';
 import ForgetPassword from '../MainComponent/ForgetPassword';
 import OfflineForm from '../Screenthree/OfflineForm';
 import ReportOffline from '../MainComponent/ReportOffline';
+import SubmitTruckData from '../Screenthree/SubmitTruckData';
+import LanguageSelector from '../Screenthree/Languages';
 
 
 
@@ -37,22 +39,17 @@ export default function StackNavigator() {
     >
 
       <Stack.Screen name="LoginApp" component={LoginApp} />
-
-
       <Stack.Screen name="DispatchDrawernavigator" component={DispatchDrawernavigator} />
-
-
       <Stack.Screen name="ReportOffline" component={ReportOffline} />
       <Stack.Screen name="DispatchRecieve" component={DispatchRecieve} />
-      
       <Stack.Screen name="Federation" component={Federation} />
-
       <Stack.Screen name="Navbar" component={Navbar} />
-      <Stack.Screen name=" SwitchScreens" component={SwitchScreens} />
       <Stack.Screen name="ForgetPassword" component={ForgetPassword} />
       <Stack.Screen name="HealthReport" component={HealthReport} />
       <Stack.Screen name="ReimbursementList" component={ReimbursementList} />
       <Stack.Screen name = "OfflineForm" component={OfflineForm} />
+      <Stack.Screen name = "SubmitTruckData" component={SubmitTruckData} />
+      <Stack.Screen name = "LanguageSelector" component={LanguageSelector} />
     
     
     </Stack.Navigator>

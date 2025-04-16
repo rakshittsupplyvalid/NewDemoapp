@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TextInput, RefreshControl, TouchableOpacity , SafeAreaView , Modal, Image, Pressable } from 'react-native';
+import { View, Text, FlatList, TextInput, RefreshControl, TouchableOpacity, SafeAreaView, Modal, Image, Pressable } from 'react-native';
 import api from '../service/api/apiInterceptors';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { tableStyles } from '../theme/TableStyles';
@@ -8,7 +8,12 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDate } from '../utils/dateUtils';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { HealthreportStyle } from '../theme/HealthreportStyle';
-import moment from 'moment';
+import {useTranslation} from 'react-i18next';
+import { RootStackParamList } from '../types/Type';
+import { DrawerNavigationProp } from '@react-navigation/drawer';
+import { useFocusEffect } from '@react-navigation/native';
+
+
 
 
 
@@ -27,12 +32,18 @@ interface Reimbursementprops {
   navigation: StackNavigationProp<any>;
 }
 
-const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
+
+
+const ReimbursementList: React.FC = () => {
   const [tableData, setTableData] = useState<TableData[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedReimbursement, setSelectedReimbursement] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+    const { t ,  i18n } = useTranslation();
+          const navigation = useNavigation<DrawerNavigationProp<RootStackParamList>>();
+          
+    
 
   type RouteParams = {
     ApprovalStatus: string;
@@ -43,15 +54,9 @@ const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
   const { ApprovalStatus, BillPaymentStatus } = route.params || {};
   const [refreshing, setRefreshing] = useState(false);
 
- 
-
-  useEffect(() => {
-    fetchData();
-  }, [BillPaymentStatus, ApprovalStatus]);
-
-
   
- 
+
+
 
   const fetchData = async () => {
     try {
@@ -73,13 +78,26 @@ const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
         purpose: x.purpose ? x.purpose : 'No purpose available',
       }));
 
-    
+
       setTableData(data);
+      console.log("Fetched data:", data);
 
     } catch (error) {
       console.error("Error fetching reimbursement data:", error);
     }
   };
+
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [])
+  );
+  
+  
 
   const fetchReimbursementDetails = async (id: string) => {
     try {
@@ -93,35 +111,29 @@ const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
 
 
   const filteredData = tableData
-    .filter((item) => {
-      const searchTerm = searchQuery.toUpperCase();
-      const itemDate = item.date.toUpperCase();
-      const formattedSearchQuery = searchQuery.split('/').reverse().join('');
+  .filter((item) => {
+    const searchTerm = searchQuery.toUpperCase().trim();
 
-      return (
-        item.username.toUpperCase().includes(searchTerm) ||
-        itemDate.includes(formattedSearchQuery) ||
-        item.billtype.toUpperCase().includes(searchTerm) ||
-        item.approvalstatus.toUpperCase().includes(searchTerm) ||
-        (item.amount && item.amount.toString().includes(searchTerm))
-      );
-    })
-    .sort((a, b) => {
+    const itemDate = item.date.trim();
+    const normalizedItemDate = itemDate.split('/').reverse().join(''); // 20250115
+    const normalizedSearchQuery = searchQuery.split('/').reverse().join(''); // 20250115
 
-      const dateA = a.date.split('/').reverse().join('-'); // Convert to YYYY-MM-DD
-      const dateB = b.date.split('/').reverse().join('-'); 
+    return (
+      item.username.toUpperCase().includes(searchTerm) ||
+      normalizedItemDate.includes(normalizedSearchQuery) ||
+      item.billtype.toUpperCase().includes(searchTerm) ||
+      item.approvalstatus.toUpperCase().includes(searchTerm) ||
+      (item.amount && item.amount.toString().includes(searchTerm))
+    );
+  })
+  .sort((a, b) => {
+    const dateA = a.date.split('/').reverse().join('-'); // Convert to YYYY-MM-DD
+    const dateB = b.date.split('/').reverse().join('-');
 
-      return new Date(dateA).getTime() - new Date(dateB).getTime(); // Ascending order
-    });
+    return new Date(dateA).getTime() - new Date(dateB).getTime(); // Ascending order
+  });
 
-  // const handleClick = (itemId: string) => {
-  //   navigateToScreen('ReimbView', { id: itemId });
-  // };
-
-  // const handleAddClick = () => {
-  //   navigateToScreen('/ReimbForm');
-  // };
-
+ 
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchData();
@@ -136,154 +148,151 @@ const ReimbursementList: React.FC<Reimbursementprops> = ({navigation}) => {
       ]}
 
     >
-  
-  
+
+
       <Text style={tableStyles.cell}>{item.date}</Text>
 
       <Text style={tableStyles.cell}>{item.billtype.toUpperCase()}</Text>
       <Text style={tableStyles.cell}>{item.amount}</Text>
       <TouchableOpacity onPress={() => fetchReimbursementDetails(item.id)} >
-         
-            <MaterialIcons name="visibility" size={25} color="black" />
-          </TouchableOpacity>
+
+        <MaterialIcons name="visibility" size={25} color="black" />
+      </TouchableOpacity>
 
 
 
-       
+
     </View>
   );
 
 
 
   return (
-  
-
-   <SafeAreaView> 
-    <Navbar />
-    
 
 
-  
-    <View style={tableStyles.container}>
+    <SafeAreaView>
+      <Navbar />
 
-    <Pressable 
-      onPress={() => navigation.navigate('DispatchDrawernavigator')}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F79B00',
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        width : 170,
-        alignSelf: 'flex-end',
-        borderRadius: 10,
-    
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5,
-        marginBottom: 20,
-      }}
-    >
-      <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold', marginRight: 10 }}>
-        Go to Dashboard
-      </Text>
-      <MaterialIcons name="arrow-forward" size={24} color="white" />
-    </Pressable>
-      
-      <TextInput
-        style={tableStyles.searchInput}
-        placeholder={`Search by ${filteredData.length} Item`}
-        value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text)}
-      />
-      <View style={tableStyles.header}>
-        <Text style={tableStyles.headerCell}>Date</Text>
-        <Text style={tableStyles.headerCell}>Bill Type</Text>
-        <Text style={tableStyles.headerCell}>Amount</Text>
-        <Text style={tableStyles.headerCell}>View</Text>
+
+
+
+      <View style={tableStyles.container}>
+
+        {/* <Pressable
+          onPress={() => navigation.navigate('Dashboard')}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#F79B00',
+            paddingVertical: 10,
+            paddingHorizontal: 10,
+            width: 170,
+            alignSelf: 'flex-end',
+            borderRadius: 10,
+
+            shadowOpacity: 0.3,
+            shadowRadius: 4,
+            elevation: 5,
+            marginBottom: 20,
+          }}
+        >
+          <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold', marginRight: 10 }}>
+        Go to Dhashboard
+          </Text>
+          <MaterialIcons name="arrow-forward" size={24} color="white" />
+        </Pressable> */}
+
+        <TextInput
+          style={tableStyles.searchInput}
+          placeholder={`Search by ${filteredData.length} Item`}
+          value={searchQuery}
+          onChangeText={(text) => setSearchQuery(text)}
+        />
+        <View style={tableStyles.header}>
+          <Text style={tableStyles.headerCell}>  {t('Date')}</Text>
+          <Text style={tableStyles.headerCell}>{t('Billtype')}</Text>
+          <Text style={tableStyles.headerCell}>{t('Amount')}</Text>
+          <Text style={tableStyles.headerCell}>{t('View')}</Text>
+        </View>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={HealthreportStyle.modalContainer}>
+
+            <View style={HealthreportStyle.heading}>
+              <Text style={HealthreportStyle.text} >{t("ReimbursmentList")}</Text>
+            </View>
+            <View style={HealthreportStyle.modalContent}>
+
+              {selectedReimbursement && (
+                <>
+                  <View style={HealthreportStyle.rowone}>
+                    <Text style={HealthreportStyle.labelone}>{t('Date')}</Text>
+                    <Text style={HealthreportStyle.valueone}>{selectedReimbursement.date}</Text>
+                  </View>
+
+
+                  <View style={HealthreportStyle.rowone}>
+                    <Text style={HealthreportStyle.labelone}>{t('Billtype')}</Text>
+                    <Text style={HealthreportStyle.valueone}>{selectedReimbursement.billtype.toUpperCase()}</Text>
+                  </View>
+
+
+                 
+
+
+                  <View style={HealthreportStyle.rowone}>
+                    <Text style={HealthreportStyle.labelone}>{t('Amount')}</Text>
+                    <Text style={HealthreportStyle.valueone}>₹{selectedReimbursement.amount}</Text>
+                  </View>
+
+
+
+                  <View style={HealthreportStyle.rowone}>
+                    <Text style={HealthreportStyle.labelone}>{t('purpose')}</Text>
+                    <Text style={HealthreportStyle.valueone}>{selectedReimbursement.purpose}</Text>
+                  </View>
+
+
+
+
+
+
+
+
+                  {selectedReimbursement.images && selectedReimbursement.images.length > 0 && (
+                    <Image
+                      source={{ uri: `https://dev-backend-2024.epravaha.com${selectedReimbursement.images[0]}` }}
+                      style={tableStyles.image}
+                    />
+                  )}
+
+
+                </>
+              )}
+              <TouchableOpacity
+                style={tableStyles.closeButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={{ color: 'white' }}>{t('Close')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <FlatList
+          data={filteredData}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={<Text style={tableStyles.emptyText}>No data available</Text>}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        />
       </View>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={HealthreportStyle.modalContainer}>
-
-           <View style={HealthreportStyle.heading}>
-                      <Text style={HealthreportStyle.text} >Reimbursment List</Text>
-                    </View>
-          <View style={HealthreportStyle.modalContent}>
- 
-            {selectedReimbursement&& (
-              <>
- <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Date</Text>
-                  <Text style={HealthreportStyle.valueone}>{selectedReimbursement.date}</Text>
-                </View>
-
-
-                <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Bill Type</Text>
-                  <Text style={HealthreportStyle.valueone}>{selectedReimbursement.billtype.toUpperCase()}</Text>
-                </View>
-
-
-                <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Bill Type</Text>
-                  <Text style={HealthreportStyle.valueone}>{selectedReimbursement.billtype.toUpperCase()}</Text>
-                </View>
-
-
-                <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Amount:</Text>
-                  <Text style={HealthreportStyle.valueone}>₹{selectedReimbursement.amount}</Text>
-                </View>
-
-
-
-                <View style={HealthreportStyle.rowone}>
-                  <Text style={HealthreportStyle.labelone}>Purpose:</Text>
-                  <Text style={HealthreportStyle.valueone}>₹{selectedReimbursement.purpose}</Text>
-                </View>
-                
-                
-
-                
-
-      
-      
-
-      {selectedReimbursement.images && selectedReimbursement.images.length > 0 && (
-          <Image 
-            source={{ uri: `https://dev-backend-2024.epravaha.com${selectedReimbursement.images[0]}` }}
-            style={tableStyles.image}
-          />
-        )}
-      
-
-              </>
-            )}
-            <TouchableOpacity
-              style={tableStyles.closeButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={{ color: 'white' }}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <FlatList
-        data={filteredData}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        ListEmptyComponent={<Text style={tableStyles.emptyText}>No data available</Text>}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-      />
-    </View>
-  
     </SafeAreaView>
   );
 };

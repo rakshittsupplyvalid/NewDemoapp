@@ -14,15 +14,33 @@ export type RootStackParamList = {
     HealthReportselect: undefined;
     ReimbursementForm: undefined;
     ReimbursementList: { ApprovalStatus: string; BillPaymentStatus?: string };
-    
     DispatchRecieve :  { quantitymt: string };
     Dashboard : undefined;
-
+    LanguageSelector : undefined;
+    SubmitTruckData:
+     { truckData: string ,  
+      date : any ,
+      grossWeight: any, 
+      bagCount : any, 
+      size : any,
+      stainingColourPercent : any ,
+      BlackSmutPercent : any ,
+      sproutedPercent : any ,
+      spoiledPercent : any ,
+      onionSkinPercent: any,
+      moisturePercent : any,
+      SpoliedPercent : any,
+      SpoliedComment : any,
+      Branchpersonname : any,
+      imageurl : any,
+      };
+    ReportOffline :undefined;
     "Generate Health Report": undefined;
     "Health Report List": undefined;
     "Dispatch Report List": undefined;
     "Dispatch Truck List": undefined;
     "Receive Truck List": undefined;
+    OfflineForm : undefined;
     HealthReport :  { 
       truckNumber: string;
   grossWeight: string;
