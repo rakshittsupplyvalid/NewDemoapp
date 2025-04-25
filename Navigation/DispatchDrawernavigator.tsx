@@ -20,6 +20,7 @@ import LanguageSelector from '../Screenthree/Languages';
 import ReimbursementList from '../Screenthree/ReimbursementList';
 
 import { useTranslation } from 'react-i18next';
+import TestForm from '../Screenthree/TestForm';
 
 const Drawer = createDrawerNavigator();
 
@@ -114,7 +115,8 @@ export default function DispatchDrawernavigator() {
 
           <Drawer.Screen
             name={t('generateHealthReport')}
-            component={GenerateHealthReport}
+            // component={GenerateHealthReport}
+            component={TestForm}
             options={{
               headerShown: false,
               drawerIcon: ({ color, size }) => <Icon name="health-and-safety" size={size} color={color} />,

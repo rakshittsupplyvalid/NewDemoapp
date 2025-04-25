@@ -13,11 +13,11 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
-  
+
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { launchCamera, ImagePickerResponse, launchImageLibrary } from 'react-native-image-picker';
-import {useTranslation} from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 
 import api from '../service/api/apiInterceptors';
@@ -58,8 +58,8 @@ const ReimbursementForm = () => {
 
 
   const [isModalVisible, setModalVisible] = useState(false);
-   const { t ,  i18n } = useTranslation();
-  
+  const { t, i18n } = useTranslation();
+
 
 
   const today = new Date();
@@ -98,25 +98,25 @@ const ReimbursementForm = () => {
           console.log('ImagePicker Error: ', response.errorMessage);
         } else if (response.assets) {
           const capturedImage = response.assets[0];
-          
+
           // Log the image file size in bytes
           console.log('Captured image size (in bytes):', capturedImage.fileSize);
-  
+
           // Construct image object
           const image = {
             uri: capturedImage.uri ?? '',
             fileName: capturedImage.fileName || `image_${capturedImage.id}.jpg`,
             type: capturedImage.type || 'image/jpeg', // Default type is 'image/jpeg'
           };
-  
-         
+
+
           setImages((prevImages) => [...prevImages, image]);
         }
       }
     );
-    toggleModal();  
+    toggleModal();
   };
-  
+
 
   const handlePickImage = () => {
     launchImageLibrary(
@@ -134,30 +134,30 @@ const ReimbursementForm = () => {
           console.log('ImagePicker Error: ', response.errorMessage);
         } else if (response.assets) {
           const pickedImage = response.assets[0];
-  
+
           const image = {
             uri: pickedImage.uri ?? '', // URI of the selected image
             fileName: pickedImage.fileName || `image_${pickedImage.id}.jpg`, // Default file name
             type: pickedImage.type || 'image/jpeg', // Default type
           };
-  
+
           // Log image size to check if it's close to 200 KB
           const fileSize = pickedImage.fileSize ?? 0; // Use nullish coalescing to handle undefined
-  
+
           console.log('Picked image size:', fileSize);
-  
-        
-  
+
+
+
           // Add image to your state
           setImages((prevImages) => [...prevImages, image]);
         }
       }
     );
-  
+
     toggleModal();
   };
-        
-  
+
+
   const handleDeleteImage = (index: number) => {
     // Remove the image from the array based on the index
     setImages((prevImages) => prevImages.filter((_, i) => i !== index));
@@ -257,7 +257,7 @@ const ReimbursementForm = () => {
         setImages([]);
         setSelectedDate(new Date());
 
-       
+
         Alert.alert('Success', response.data.message || 'Reimbursement added successfully');
       } else {
         console.log('Response:', response.data);
@@ -284,9 +284,8 @@ const ReimbursementForm = () => {
   };
 
   return (
-    
-    <ScrollView style={styles.container}>
 
+    <ScrollView style={styles.container}>
       <Navbar />
       <FlatList
         data={[{ key: 'form' }]} // Dummy data to render content
@@ -295,25 +294,15 @@ const ReimbursementForm = () => {
           <View style={styles.formContent}>
             <Text style={styles.label}>{t('Date')}</Text>
             <View style={styles.inputWrapper}>
-
-     
-           
-            <TouchableOpacity onPress={() => setShowDatePicker(true)} >
-            <TextInput
-              style={styles.input}
-              placeholder={t('selecteddate')}
-              value={formData.date}
-              onChangeText={(text) => handleInputChange('date', text)}
-              editable={false}
-             
-
-
-            />
-
-{/* <Icon name="arrow-right" size={25} color="#666" /> */}
-           
-             
-            </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowDatePicker(true)} >
+                <TextInput
+                  style={styles.input}
+                  placeholder={t('selecteddate')}
+                  value={formData.date}
+                  onChangeText={(text) => handleInputChange('date', text)}
+                  editable={false}
+                />
+              </TouchableOpacity>
             </View>
 
             {showDatePicker && (
@@ -323,8 +312,8 @@ const ReimbursementForm = () => {
                 display="default"
                 onChange={handleDateChange}
                 minimumDate={threeMonthsAgo} // Set minimum date to 3 months ago
-          maximumDate={today} // Set maximum date to today
-             
+                maximumDate={today} // Set maximum date to today
+
               />
             )}
 
@@ -355,7 +344,7 @@ const ReimbursementForm = () => {
                 <Text style={styles.label}>{t("StartTripReading")}</Text>
                 <TextInput
                   style={styles.input}
-                  
+
                   placeholder={t("StartTripReading")}
                   keyboardType="numeric"
                   value={formData.StartTripReading}
@@ -386,7 +375,7 @@ const ReimbursementForm = () => {
             <TextInput
               style={styles.input}
               placeholder={t("purpose")}
-                
+
               value={formData.Purpose}
               onChangeText={(text) => handleInputChange('Purpose', text)}
             />
@@ -400,87 +389,79 @@ const ReimbursementForm = () => {
               <Text style={styles.buttonText}>Photo From Gallery</Text>
             </TouchableOpacity> */}
 
-<View>
-  <Pressable style={styles.button} onPress={toggleModal}>
-    <Text style={styles.buttonText}>{t("CaptureImage")}</Text>
-  </Pressable>
-  
-  <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
-   
+            <View>
+              <Pressable style={styles.button} onPress={toggleModal}>
+                <Text style={styles.buttonText}>{t("CaptureImage")}</Text>
+              </Pressable>
 
-      
-
-   
-
-      <View style={{
-  width: '100%', 
-  height: '50%', 
-  
-  backgroundColor: 'rgba(0, 0, 0, 0.5)', 
-  justifyContent: 'center', 
-  alignItems: 'center', 
-
-}}>
-         <Pressable onPress={handleTakePhoto} style={styles.pressable}>
-    <Text style={styles.buttonText}>{t("Camera")}</Text>
-    <MaterialIcons name="camera" size={30} color="#fff" />
-  </Pressable>
-
-  <Pressable onPress={handlePickImage} style={styles.pressable} >
-    <Text style={styles.buttonText}>{t("Gallery")}</Text>
-    <MaterialIcons name="photo-library" size={30} color="#fff" />
-  </Pressable>
-
-        <Pressable 
-        style={styles.closeButton} 
-        onPress={toggleModal}
-      >
-            <MaterialIcons name="close" size={20} color="#fff" />
-        
-      </Pressable>
-      </View>
-
-  </Modal>
-</View>
+              <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
 
 
 
 
 
 
+                <View style={{
+                  width: '100%',
+                  height: '50%',
+
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+
+                }}>
+                  <Pressable onPress={handleTakePhoto} style={styles.pressable}>
+                    <Text style={styles.buttonText}>{t("Camera")}</Text>
+                    <MaterialIcons name="camera" size={30} color="#fff" />
+                  </Pressable>
+
+                  <Pressable onPress={handlePickImage} style={styles.pressable} >
+                    <Text style={styles.buttonText}>{t("Gallery")}</Text>
+                    <MaterialIcons name="photo-library" size={30} color="#fff" />
+                  </Pressable>
+
+                  <Pressable
+                    style={styles.closeButton}
+                    onPress={toggleModal}
+                  >
+                    <MaterialIcons name="close" size={20} color="#fff" />
+
+                  </Pressable>
+                </View>
+
+              </Modal>
+            </View>
             {images.length > 0 && (
-  <>
-    <FlatList
-      data={images}
-      horizontal
-      keyExtractor={(item, index) => `${item.uri}-${index}`}
-      renderItem={({ item, index }) => (
-        <View style={styles.imageContainer}>
-          {/* Delete icon above the image */}
-          <TouchableOpacity
-            onPress={() => handleDeleteImage(index)}
-            style={styles.deleteButton}
-          >
-            <MaterialIcons name="close" size={20} color="#fff" />
-          </TouchableOpacity>
+              <>
+                <FlatList
+                  data={images}
+                  horizontal
+                  keyExtractor={(item, index) => `${item.uri}-${index}`}
+                  renderItem={({ item, index }) => (
+                    <View style={styles.imageContainer}>
+                      {/* Delete icon above the image */}
+                      <TouchableOpacity
+                        onPress={() => handleDeleteImage(index)}
+                        style={styles.deleteButton}
+                      >
+                        <MaterialIcons name="close" size={20} color="#fff" />
+                      </TouchableOpacity>
 
 
-        
-            <TouchableOpacity onPress={handlePress}>
-          
-          <Image source={{ uri: item.uri }} style={styles.image} />
-              
-          </TouchableOpacity>
+
+                      <TouchableOpacity onPress={handlePress}>
+
+                        <Image source={{ uri: item.uri }} style={styles.image} />
+
+                      </TouchableOpacity>
 
 
-    
-        </View>
-      )}
-    />
-  </>
-)}
 
-
+                    </View>
+                  )}
+                />
+              </>
+            )}
             <TouchableOpacity onPress={handleSubmit} style={[styles.button, isSubmitting && styles.buttonDisabled]} disabled={isSubmitting}>
               <Text style={styles.buttonText}>{isSubmitting ? 'Submitting...' : 'Submit'}</Text>
             </TouchableOpacity>
@@ -488,11 +469,11 @@ const ReimbursementForm = () => {
           </View>
         )}
         keyboardShouldPersistTaps="handled"
-        scrollEnabled={false} 
+        scrollEnabled={false}
       />
     </ScrollView>
- 
-  
+
+
   );
 };
 
@@ -500,12 +481,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff', // light background
-  
+
   },
   formContent: {
     padding: 20,
     backgroundColor: '#ffffff',
-    
+
     marginBottom: 20,
   },
   label: {
@@ -536,7 +517,7 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flexDirection: 'column',
-   
+
   },
   dropdown: {
     borderWidth: 1,
@@ -565,19 +546,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
 
-    
+
   },
   imageContainer: {
     position: 'relative', // Ensures the delete button is positioned relative to the image container
     marginRight: 10,
 
-  
-    padding : 10
- 
-  }, 
+
+    padding: 10
+
+  },
   image: {
     width: 100,
-    height: 100, 
+    height: 100,
     borderRadius: 10,
     marginRight: 10,
     marginBottom: 10,
@@ -602,7 +583,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff4d4d', // Red color for delete button
     padding: 5,
     borderRadius: 50, // Circular delete button
-    zIndex :1
+    zIndex: 1
   },
   deleteButtonText: {
     color: '#fff',
@@ -614,23 +595,23 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: '#9c9c9c',
   },
-  modal :{
-    backgroundColor : 'red '
+  modal: {
+    backgroundColor: 'red '
   },
   closeButton: {
     // Close button styles
-    position: 'absolute', 
-    top: 10, 
+    position: 'absolute',
+    top: 10,
     right: 10,
     padding: 10,
     backgroundColor: '#ff5c5c', // Red color for close button
     borderRadius: 20,
   },
-  pressable :{
+  pressable: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'grey',
-    paddingVertical: 10,      
+    paddingVertical: 10,
     paddingHorizontal: 15,    // horizontal padding to create space around the text and icon
     borderRadius: 5,         // rounded corners for a smoother look
     marginHorizontal: 10,    // space between the buttons
@@ -638,10 +619,10 @@ const styles = StyleSheet.create({
     shadowColor: '#000',     // shadow color for iOS
     shadowOffset: { width: 0, height: 2 }, // shadow offset
     shadowOpacity: 0.1,      // opacity of the shadow
-    shadowRadius: 5,  
-    marginTop : 30,
-    width : 180,    
-    justifyContent : 'center'   // blur radius of the shadow
+    shadowRadius: 5,
+    marginTop: 30,
+    width: 180,
+    justifyContent: 'center'   // blur radius of the shadow
   }
 });
 

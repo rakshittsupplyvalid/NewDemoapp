@@ -270,19 +270,21 @@ const GenerateHealthReport = () => {
 
 
     if (currentStep === 2) {
-      if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
+      if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size)
+         {
         Alert.alert("Validation Error", "All fields are required!");
         return;
-      }
+        }
 
       const netWeight = parseFloat(grossWeight) - parseFloat(tareWeight);
 
 
 
-      if (netWeight < 0) {
+      if (netWeight < 0)
+         {
         Alert.alert("Validation Error", "Net Weight cannot be negative!");
         return;
-      }
+        }
 
       if (parseFloat(grossWeight) <= 0 || parseFloat(tareWeight) <= 0) {
         Alert.alert("Validation Error", "Gross and Tare Weight must be greater than zero!");
@@ -385,7 +387,10 @@ const GenerateHealthReport = () => {
 
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = (
+
+
+  ) => {
     if (previousSteps.length > 0) {
       const lastStep = previousSteps[previousSteps.length - 1]; // Get the last step
 
@@ -734,6 +739,11 @@ const GenerateHealthReport = () => {
                 </View>
 
               </View>
+
+
+
+
+
 
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
@@ -1190,11 +1200,75 @@ const GenerateHealthReport = () => {
 
 
           {currentStep === 4 && (
+            <View>
+              <View style={styles.centerContainer}>
+                <Text style={styles.title}>{t('CaptureImage')}</Text>
+              </View>
 
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
+                  <MaterialIcons name="camera" size={30} color="white" />
+                  <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+                  <Text style={styles.buttonText}>{t('Previous')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                  <Text style={styles.buttonText}>{t('submit')}</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Image Grid */}
+              <View style={styles.imageGrid}>
+                {imageUri.map((img, index) => (
+                  <View key={index} style={styles.imageContainer}>
+                    <TouchableOpacity onPress={() => setSelectedImage(img.uri)}>
+                      <Image source={{ uri: img.uri }} style={styles.image} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.deleteIcon}
+                      onPress={() => handleDeleteImage(index)}
+                    >
+                      <MaterialIcons name="cancel" size={24} color="red" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
+                {/* Modal to show full image */}
+                <Modal visible={!!selectedImage} transparent={true}>
+                  <View style={styles.modalContainer}>
+                    <TouchableOpacity
+                      style={styles.modalClose}
+                      onPress={() => setSelectedImage(null)}
+                    >
+                      <MaterialIcons name="cancel" size={30} color="white" />
+                    </TouchableOpacity>
+
+                    <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+                  </View>
+                </Modal>
+              </View>
+
+            </View>
           )}
 
         </ScrollView>
+
+
+
+
+
       </SafeAreaView>
+
+
+
+
+
     </KeyboardAvoidingView>
 
 
