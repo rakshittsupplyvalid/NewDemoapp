@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, View, ScrollView, RefreshControl, StyleSheet, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Navbar from '../App/Navbar';
+import Navbar from '../../App/Navbar';
 import api from '../service/api/apiInterceptors';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { RootStackParamList } from '../types/Type';
-import Footer from '../App/Footer';
+import Footer from '../../App/Footer';
 import TruckCard from './TruckCard';
 import NetInfo from "@react-native-community/netinfo";
 import {useTranslation} from 'react-i18next';

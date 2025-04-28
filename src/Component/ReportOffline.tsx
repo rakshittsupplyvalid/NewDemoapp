@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import { MMKV } from 'react-native-mmkv';
-import Navbar from "../App/Navbar";
-import Footer from "../App/Footer";
+import Navbar from "../../App/Navbar";
+import Footer from "../../App/Footer";
 import { useTranslation } from 'react-i18next'; 
 
 const ReportOffline = () => {

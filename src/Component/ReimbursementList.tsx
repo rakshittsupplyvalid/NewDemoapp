@@ -3,7 +3,7 @@ import { View, Text, FlatList, TextInput, RefreshControl, TouchableOpacity, Safe
 import api from '../service/api/apiInterceptors';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { tableStyles } from '../theme/TableStyles';
-import Navbar from '../App/Navbar';
+import Navbar from '../../App/Navbar';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { formatDate } from '../utils/dateUtils';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';

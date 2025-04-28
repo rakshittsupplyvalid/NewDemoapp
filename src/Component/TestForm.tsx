@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Switch, Modal, Image, FlatList, Button } from 'react-native';
-import useForm from '../App/common/lib/useForm';
+import useForm from '../../App/common/lib/useForm';
 import api from '../service/api/apiInterceptors';
 import { Picker } from '@react-native-picker/picker';
 import styles from '../theme/Healthreport';
-import Navbar from '../App/Navbar';
+import Navbar from '../../App/Navbar';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { PermissionsAndroid } from 'react-native';
-import { launchCamera, launchImageLibrary, ImagePickerResponse, ImageLibraryOptions } from 'react-native-image-picker';
-import createFormdata from '../App/common/lib/createFormdata';
+import { launchCamera } from 'react-native-image-picker';
+import createFormdata from '../../App/common/lib/createFormdata';
 import { useIsFocused } from '@react-navigation/native';
 
 
@@ -34,6 +34,7 @@ const TestForm = () => {
 
   useEffect(() => {
     if (isFocused) {
+      // Reset the form when the component is focused and currentStep is 0  
       updateState({ form: null })
     }
   }, [isFocused]);
@@ -122,14 +123,16 @@ const TestForm = () => {
   };
 
 
+
+
   const handleDeleteImage = (index) => {
-    const updatedImages = [...(state.form?.images || [])];
+    const updatedImages = [...(state.form?.Files || [])];
     updatedImages.splice(index, 1);
     updateState({
       ...state,
       form: {
         ...state.form,
-        images: updatedImages
+        Files: updatedImages
       }
     });
   };
@@ -277,15 +280,13 @@ const TestForm = () => {
       form.Files = [];
     }
 
-    // Create FormData with proper file formatting
-    const cform = new FormData();
+    const cform = form;
 
-    // Add all regular fields except Files
-    Object.entries(form).forEach(([key, value]) => {
-      if (key !== 'Files' && value !== null && value !== undefined) {
-        cform.append(key, value);
-      }
-    });
+    // Object.entries(form).forEach(([key, value]) => {
+    //   if (key !== 'Files' && value !== null && value !== undefined) {
+    //     cform.append(key, value);
+    //   }
+    // });
 
     // Add files with proper formatting
     form.Files.forEach((file, index) => {
@@ -298,13 +299,13 @@ const TestForm = () => {
 
     // Debug output
     cform.forEach((value, key) => {
-      console.log(key, value);
+      console.log( 'formdtaa' , key, value);
     });
 
     api.post('/api/healthreport/receive', cform, {
       headers: {
         'Content-Type': 'multipart/form-data',
-        'Authorization': 'Bearer YOUR_TOKEN' // Make sure this is included
+   
       }
     })
       .then(response => {
@@ -315,6 +316,78 @@ const TestForm = () => {
         console.error('Submission failed:', error.response?.data || error);
         alert('Submission failed. Please check console for details.');
       });
+  };
+
+  useEffect(() => {
+    if (state.form?.Trucknumber && state.form.Trucknumber.length >= 6) {
+      fetchHealthReport(state.form.Trucknumber);
+    }
+  }, [state.form?.Trucknumber]);
+
+  const fetchHealthReport = async (trucknumber: any) => {
+    try {
+      const response = await api.get(
+        `/api/healthreport?TruckNumber=${trucknumber}&ReportType=DISPATCH`
+      );
+
+      console.log("API Response:", response.data);
+
+      if (response.data && response.data.length > 0) {
+        const reportId = response.data[0].id; // Pehla report ka ID le rahe hain
+        fetchReportDetails(reportId); // ID pass karke details fetch kar rahe hain
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+    }
+  };
+
+  const fetchReportDetails = async (id: any) => {
+    try {
+      const response = await api.get(`/api/healthreport/${id}`);
+      console.log("Report Details:", response.data);
+
+      // Pehle reportDetails update karte hain
+      updateState({
+        ...state,
+        fielddata: {
+          ...state.fielddata,
+          reportDetails: response.data,
+        }
+      });
+
+      // Ab datastring parse karke form ke fields update karte hain
+      if (response.data && response.data.datastring) {
+        const parsedData = JSON.parse(response.data.datastring);
+
+        const updatedForm = {
+          ...state.fielddata,
+          grossWeight: parsedData.GrossWeight?.toString() || '',
+          tareWeight: parsedData.TareWeight?.toString() || '',
+          netWeight: parsedData.NetWeight?.toString() || '',
+          bagCount: parsedData.BagCount?.toString() || '',
+          size: parsedData.Size?.toString() || '',
+          spoiledOnion: parsedData.SpoiledOnion ?? false,
+          spoiledPercent: parsedData.SpoiledPercent ? parsedData.SpoiledPercent.toString() : '0',
+          sproutedOnion: parsedData.SproutedOnion ?? false,
+          sproutedPercent: parsedData.SproutedPercent ? parsedData.SproutedPercent.toString() : '0',
+          blackSmutOnion: parsedData.BlackSmutOnion ?? false,
+          blackSmutPercent: parsedData.BlackSmutPercent ? parsedData.BlackSmutPercent.toString() : '0',
+          stainingColour: parsedData.StainingColour ?? false,
+          stainingColourPercent: parsedData.StainingColourPercent ? parsedData.StainingColourPercent.toString() : '0',
+          onionSkin: parsedData.OnionSkin || '',
+          onionSkinPercent: parsedData.OnionSkinPercent ? parsedData.OnionSkinPercent.toString() : '0',
+          moisture: parsedData.Moisture || '',
+          moisturePercent: parsedData.MoisturePercent ? parsedData.MoisturePercent.toString() : '0',
+        };
+
+        updateState({
+          ...state,
+          form: updatedForm,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching report details:", error);
+    }
   };
 
 
@@ -393,6 +466,25 @@ const TestForm = () => {
           {/* Step 2 - Basic Information */}
           {currentStep === 1 && (
             <View style={styles.onecontainers}>
+
+              <TextInput
+                style={styles.input}
+                placeholder={t('trucknumber')}
+                value={state.form?.Trucknumber || ''}
+                onChangeText={(text) => {
+                  const upperText = text.toUpperCase();
+                  updateState({
+                    ...state,
+                    form: {
+                      ...state.form,
+                      Trucknumber: upperText,
+                    }
+                  });
+                }}
+                autoCapitalize="characters"
+                keyboardType="default" // Yeh aap 'keyb' likh rahe the, pura likha
+              />
+
               <TextInput
                 style={styles.input}
                 placeholder={t('Grossweight')}

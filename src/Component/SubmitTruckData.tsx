@@ -3,7 +3,7 @@ import { View, Text, Button, TextInput, TouchableOpacity, Image, KeyboardAvoidin
 import styles from '../theme/Healthreport';
 import { useRoute, RouteProp } from "@react-navigation/native";
 import api from '../service/api/apiInterceptors';
-import Navbar from "../App/Navbar";
+import Navbar from "../../App/Navbar";
 import { Picker } from "@react-native-picker/picker";
 
 import { MMKV } from 'react-native-mmkv';

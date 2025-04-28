@@ -18,14 +18,12 @@ import {
 import DropDownPicker from 'react-native-dropdown-picker';
 import { launchCamera, ImagePickerResponse, launchImageLibrary } from 'react-native-image-picker';
 import { useTranslation } from 'react-i18next';
-
-
 import api from '../service/api/apiInterceptors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import Navbar from '../App/Navbar';
+import Navbar from '../../App/Navbar';
 import { ScrollView } from 'react-native-gesture-handler';
 
 

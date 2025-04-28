@@ -12,13 +12,14 @@ import {
   TextInput
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import Navbar from '../App/Navbar';
+import Navbar from '../../App/Navbar';
 import api from '../service/api/apiInterceptors';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImageViewing from "react-native-image-viewing";
 
 import moment from "moment";
 import {useTranslation} from 'react-i18next';
+// import { HealthreportStyle } from '../../theme/HealthreportStyle';
 import { HealthreportStyle } from '../theme/HealthreportStyle';
  
 import { useFocusEffect } from '@react-navigation/native';

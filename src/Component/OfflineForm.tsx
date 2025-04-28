@@ -6,7 +6,7 @@ import moment from "moment";
 import { MMKV } from 'react-native-mmkv';
 import NetInfo from "@react-native-community/netinfo";
 import { launchCamera, ImagePickerResponse, ImageLibraryOptions } from 'react-native-image-picker';
-import Navbar from "../App/Navbar";
+import Navbar from "../../App/Navbar";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTranslation } from 'react-i18next';
 

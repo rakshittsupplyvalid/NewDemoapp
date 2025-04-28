@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
 import { RootStackParamList } from '../types/Type';
-import Navbar from '../App/Navbar';
-import Footer from '../App/Footer';
+import Navbar from '../../App/Navbar';
+import Footer from '../../App/Footer';
 import { MMKV } from 'react-native-mmkv';
 
 

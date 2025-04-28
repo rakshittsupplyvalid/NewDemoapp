@@ -4,7 +4,7 @@ import { launchCamera } from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../types/Type';
+import { RootStackParamList } from '..//types/Type';
 
 
 

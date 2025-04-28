@@ -1,25 +1,19 @@
 import React, { useState } from 'react';
 
 import { createStackNavigator } from '@react-navigation/stack';
-import LoginApp from '../MainComponent/LoginApp';
-import Federation from '../MainComponent/ReportOffline';
+import LoginApp from '../Component/LoginApp';
 
-
-
-
-import Navbar from '../App/Navbar';
-
-
+import Federation from '../Component/ReportOffline';
+import Navbar from '../../App/Navbar';
 import DispatchDrawernavigator from './DispatchDrawernavigator';
-import DispatchRecieve from '../Screenthree/DispatchRecieve';
-import ReimbursementList from '../Screenthree/ReimbursementList';
-
-import HealthReport from '../Screenthree/HealthReport';
-import ForgetPassword from '../MainComponent/ForgetPassword';
-import OfflineForm from '../Screenthree/OfflineForm';
-import ReportOffline from '../MainComponent/ReportOffline';
-import SubmitTruckData from '../Screenthree/SubmitTruckData';
-import LanguageSelector from '../Screenthree/Languages';
+import DispatchRecieve from '../../src/Component/DispatchRecieve';
+import ReimbursementList from '../../src/Component/ReimbursementList';
+import HealthReport from '../../src/Component/HealthReport';
+import ForgetPassword from '../Component/ForgetPassword';
+import OfflineForm from '../../src/Component/OfflineForm';
+import ReportOffline from '../Component/ReportOffline';
+import SubmitTruckData from '../../src/Component/SubmitTruckData';
+import LanguageSelector from '../../src/Component/Languages';
 
 
 
@@ -32,12 +26,10 @@ export default function StackNavigator() {
 
     <Stack.Navigator
       id={undefined}
-
       initialRouteName={'LoginApp'}
       screenOptions={{ headerShown: false }}
 
     >
-
       <Stack.Screen name="LoginApp" component={LoginApp} />
       <Stack.Screen name="DispatchDrawernavigator" component={DispatchDrawernavigator} />
       <Stack.Screen name="ReportOffline" component={ReportOffline} />

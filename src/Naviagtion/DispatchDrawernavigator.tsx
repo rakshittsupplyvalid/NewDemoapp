@@ -3,24 +3,24 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import NetInfo from "@react-native-community/netinfo";
-import GenerateHealthReport from '../Screenthree/GenerateHealthReport';
-import HealthReportlist from '../Screenthree/HealthReportlist';
-import DispatchReportlist from '../Screenthree/DispatchReportlist';
-import RecieveDhasboard from '../Screenthree/RecieveDhasboard';
-import Dispatchlist from '../Screenthree/Dispatchlist';
-import Recievelist from '../Screenthree/Recievelist';
-import ReimbursementForm from '../Screenthree/ReimbursementForm';
-import OfflineForm from '../Screenthree/OfflineForm';
-import api from '../service/api/apiInterceptors';
-import ReportOffline from '../MainComponent/ReportOffline';
-import SavedReport from '../Screenthree/SavedReport';
-import OfflineDashboard from '../Screenthree/OfflineDhasboard';
-import SubmitTruckData from '../Screenthree/SubmitTruckData';
-import LanguageSelector from '../Screenthree/Languages';
-import ReimbursementList from '../Screenthree/ReimbursementList';
 
+import HealthReportlist from '../../src/Component/HealthReportlist';
+import DispatchReportlist from '../../src/Component/DispatchReportlist';
+import RecieveDhasboard from '../../src/Component/RecieveDhasboard';
+import Dispatchlist from '../../src/Component/Dispatchlist';
+import Recievelist from '../../src/Component/Recievelist';
+import ReimbursementForm from '../../src/Component/ReimbursementForm';
+import OfflineForm from '../../src/Component/OfflineForm';
+import api from '../service/api/apiInterceptors';
+import ReportOffline from '../../src/Component/ReportOffline';
+import SavedReport from '../../src/Component/SavedReport';
+import OfflineDashboard from '../../src/Component/OfflineDhasboard';
+import SubmitTruckData from '../../src/Component/SubmitTruckData';
+import LanguageSelector from '../../src/Component/Languages';
+import ReimbursementList from '../../src/Component/ReimbursementList';
+import TestForm from '../../src/Component/TestForm';
 import { useTranslation } from 'react-i18next';
-import TestForm from '../Screenthree/TestForm';
+
 
 const Drawer = createDrawerNavigator();
 

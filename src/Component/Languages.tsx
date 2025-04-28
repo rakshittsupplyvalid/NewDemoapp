@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView ,  SafeAreaView  , KeyboardAvoidingView, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
-import { storage } from '../service/i18n'; 
-import Navbar from '../App/Navbar';
+
+import { storage } from '../service/i18n';
+import Navbar from '../../App/Navbar';
 
 
 const LanguageSelector = () => {

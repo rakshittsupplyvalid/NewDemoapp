@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import StackNavigator from './Navigation/StackNavigator';  
+import StackNavigator from './src/Naviagtion/StackNavigator';
 import { NavigationContainerRef } from '@react-navigation/native';
 
 type RootParamList = {};

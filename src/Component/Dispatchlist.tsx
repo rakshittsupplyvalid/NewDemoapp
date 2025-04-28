@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View , TextInput } from 'react-native';
-import Navbar from '../App/Navbar';
+import Navbar from '../../App/Navbar';
 import api from '../service/api/apiInterceptors';
+
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/Type';

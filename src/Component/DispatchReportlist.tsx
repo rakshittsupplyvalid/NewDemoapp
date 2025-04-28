@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View, TextInput } from 'react-native';
-import Navbar from '../App/Navbar';
+import Navbar from '../../App/Navbar';
 import api from '../service/api/apiInterceptors';
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
