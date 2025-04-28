@@ -21,6 +21,7 @@ const TestForm = () => {
   const { state, updateState } = useForm();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const currentStep = state?.hidden?.currentStep || 0;
+  const [selectedImage, setSelectedImage] = useState(null);
   const previousSteps = state?.hidden?.previousSteps || [];
   const isFocused = useIsFocused();
 
@@ -121,6 +122,18 @@ const TestForm = () => {
   };
 
 
+  const handleDeleteImage = (index) => {
+    const updatedImages = [...(state.form?.images || [])];
+    updatedImages.splice(index, 1);
+    updateState({
+      ...state,
+      form: {
+        ...state.form,
+        images: updatedImages
+      }
+    });
+  };
+
 
   const requestCameraPermission = async () => {
     if (Platform.OS === 'android') {
@@ -148,6 +161,7 @@ const TestForm = () => {
         mediaType: 'photo',
         includeBase64: false,
         cameraType: 'back',
+        saveToPhotos: true,
         quality: 0.4,
         maxWidth: 700,
         maxHeight: 700,
@@ -160,22 +174,23 @@ const TestForm = () => {
         } else if (response.assets && response.assets.length > 0) {
           const capturedImage = response.assets[0];
 
-          const image= {
-            uri: capturedImage.uri ?? '',
+          const newFile = {
+            uri: Platform.OS === 'android'
+              ? capturedImage.uri
+              : capturedImage.uri.replace('file://', ''),  // iOS mein remove karo, Android mein rehne do
             fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
             type: capturedImage.type || 'image/jpeg',
           };
 
-          // Updating the state with new image inside form
-          let Files = [...(state.form?.images|| []), image]; // safe fallback
+          // Update state using Files key (not images)
           updateState({
             form: {
               ...state.form,
-              images: Files, // safe fallback
+              Files: [...(state.form?.Files || []), newFile],
             },
           });
 
-          console.log('Captured image:', image);
+          console.log('Captured file:', newFile);
         }
       }
     );
@@ -223,33 +238,73 @@ const TestForm = () => {
   };
 
 
-
-  const calculateNetWeight = () => {
-    const gross = parseFloat(state.form?.grossWeight || '0');
-    const tare = parseFloat(state.form?.tareWeight || '0');
+  const handleGrossWeightChange = (text) => {
+    const tare = parseFloat(state.form?.tareWeight) || 0;
+    const gross = parseFloat(text) || 0;
     const net = gross - tare;
 
     updateState({
       ...state,
       form: {
         ...state.form,
-        netWeight: net.toString()
-      }
+        grossWeight: text,
+        netWeight: isNaN(net) ? '' : net.toString(),
+      },
     });
   };
 
+  const handleTareWeightChange = (text) => {
+    const gross = parseFloat(state.form?.grossWeight) || 0;
+    const tare = parseFloat(text) || 0;
+    const net = gross - tare;
+
+    updateState({
+      ...state,
+      form: {
+        ...state.form,
+        tareWeight: text,
+        netWeight: isNaN(net) ? '' : net.toString(),
+      },
+    });
+  };
+
+
   const handleSubmit = () => {
+    let form = { ...state.form };
 
-    let form = { ...state.form }
+    // Ensure Files array exists (using the exact key server expects)
+    if (!form.Files) {
+      form.Files = [];
+    }
 
-    let cform = createFormdata(form)
-    
-   
-    console.log('Submitting form data:', form);
+    // Create FormData with proper file formatting
+    const cform = new FormData();
+
+    // Add all regular fields except Files
+    Object.entries(form).forEach(([key, value]) => {
+      if (key !== 'Files' && value !== null && value !== undefined) {
+        cform.append(key, value);
+      }
+    });
+
+    // Add files with proper formatting
+    form.Files.forEach((file, index) => {
+      cform.append(`Files`, {
+        uri: file.uri,
+        name: file.fileName || `file_${index}.jpg`,
+        type: file.type || 'image/jpeg'
+      } as any); // Cast to 'any' to bypass type-checking for compatibility
+    });
+
+    // Debug output
+    cform.forEach((value, key) => {
+      console.log(key, value);
+    });
 
     api.post('/api/healthreport/receive', cform, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        'Authorization': 'Bearer YOUR_TOKEN' // Make sure this is included
       }
     })
       .then(response => {
@@ -257,8 +312,8 @@ const TestForm = () => {
         alert('Form submitted successfully!');
       })
       .catch(error => {
-        console.error('Submission failed:', error);
-        console.log('Error');
+        console.error('Submission failed:', error.response?.data || error);
+        alert('Submission failed. Please check console for details.');
       });
   };
 
@@ -340,52 +395,19 @@ const TestForm = () => {
             <View style={styles.onecontainers}>
               <TextInput
                 style={styles.input}
-                placeholder={t('TruckNumber')}
-                value={state.form?.truckNumber || ''}
-                onChangeText={(text) => updateState({
-                  ...state,
-                  form: {
-                    ...state.form,
-                    truckNumber: text.toUpperCase()
-                  }
-                })}
-                autoCapitalize="characters"
-                maxLength={12}
-              />
-              <TextInput
-                style={styles.input}
                 placeholder={t('Grossweight')}
-                value={state.form?.grossWeight ? String(state.form.grossWeight) : ''}
-                onChangeText={(text) => {
-                  updateState({
-                    ...state,
-                    form: {
-                      ...state.form,
-                      grossWeight: text
-                    }
-                  });
-                  calculateNetWeight();
-                }}
+                value={state.form?.grossWeight || ''}
+                onChangeText={handleGrossWeightChange}
                 keyboardType="numeric"
               />
 
               <TextInput
                 style={styles.input}
                 placeholder={t('Tareweight')}
-                value={state.form?.tareWeight ? String(state.form.tareWeight) : ''}
-                onChangeText={(text) => {
-                  updateState({
-                    ...state,
-                    form: {
-                      ...state.form,
-                      tareWeight: text
-                    }
-                  });
-                  calculateNetWeight();
-                }}
+                value={state.form?.tareWeight || ''}
+                onChangeText={handleTareWeightChange}
                 keyboardType="numeric"
               />
-
 
               <TextInput
                 style={styles.input}
@@ -393,6 +415,12 @@ const TestForm = () => {
                 value={state.form?.netWeight || ''}
                 editable={false}
               />
+
+
+
+
+
+
 
               <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
                 <View style={styles.inputContainer}>
@@ -747,9 +775,9 @@ const TestForm = () => {
 
 
           {/* Step 4 - Review and Submit */}
-
           {currentStep === 3 && (
             <View style={{ flex: 1, padding: 20 }}>
+              {/* Camera Button */}
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
                   <MaterialIcons name="camera" size={30} color="white" />
@@ -757,6 +785,7 @@ const TestForm = () => {
                 </TouchableOpacity>
               </View>
 
+              {/* Previous and Submit Buttons */}
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
                   <Text style={styles.buttonText}>{t('Previous')}</Text>
@@ -767,26 +796,40 @@ const TestForm = () => {
                 </TouchableOpacity>
               </View>
 
+              {/* Image Grid */}
+              <View style={styles.imageGrid}>
+                {(state.form?.Files || []).map((item, index) => (
+                  <View key={index} style={styles.imageContainer}>
+                    <TouchableOpacity onPress={() => setSelectedImage(item.uri)}>
+                      <Image source={{ uri: item.uri }} style={styles.image} />
+                    </TouchableOpacity>
 
-              {/* Ensure state.form.images is defined before mapping */}
-              {(state.form?.images || []).length > 0 ? (
-                state.form.images.map((item, index) => (
-                  <View key={index} style={{ marginVertical: 10 }}>
-                    <Image
-                      source={{ uri: item.uri }}
-                      style={{ width: 100, height: 100, borderRadius: 10 }}
-                    />
+                    <TouchableOpacity
+                      style={styles.deleteIcon}
+                      onPress={() => handleDeleteImage(index)}
+                    >
+                      <MaterialIcons name="cancel" size={24} color="red" />
+                    </TouchableOpacity>
                   </View>
-                ))
-              ) : (
+                ))}
+              </View>
 
+              {/* Modal to show full image */}
+              <Modal visible={!!selectedImage} transparent={true}>
+                <View style={styles.modalContainer}>
+                  <TouchableOpacity
+                    style={styles.modalClose}
+                    onPress={() => setSelectedImage(null)}
+                  >
+                    <MaterialIcons name="cancel" size={30} color="white" />
+                  </TouchableOpacity>
 
-                <Text style={{ textAlign: 'center', marginTop: 20 }}>
-                  {t('NoImagesSelected')}
-                </Text>
-              )}
+                  <Image source={{ uri: selectedImage }} style={styles.fullImage} />
+                </View>
+              </Modal>
             </View>
           )}
+
 
 
 

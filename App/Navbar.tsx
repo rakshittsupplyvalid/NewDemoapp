@@ -5,7 +5,7 @@ import { NavigationContext } from '@react-navigation/native';
 import { DrawerActions } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { MMKV } from 'react-native-mmkv';
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'; // iiii iiii iiii iii iiii iiii iiii iiii iiii iiii iiii iiiii iiii iiii iiii iiii iiii iii iiii iiii iiii iiii iiii iii =
 
 
 // Initialize MMKV
