@@ -10,8 +10,9 @@ import { useTranslation } from 'react-i18next';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { PermissionsAndroid } from 'react-native';
 import { launchCamera } from 'react-native-image-picker';
-import createFormdata from '../../App/common/lib/createFormdata';
 import { useIsFocused } from '@react-navigation/native';
+import { createFormData } from '../../App/common/lib/Formdata';
+import { validateStepOne, validateStepTwo, validateStepThree } from '../utils/FormValidation';// Assuming you have a validation function
 
 
 
@@ -25,23 +26,34 @@ const TestForm = () => {
   const previousSteps = state?.hidden?.previousSteps || [];
   const isFocused = useIsFocused();
 
-
-
   const today = new Date();
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(today.getMonth() - 3);
 
-
   useEffect(() => {
     if (isFocused) {
-      // Reset the form when the component is focused and currentStep is 0  
-      updateState({ form: null })
+      updateState({ form: null, hidden: { ...state.hidden, currentStep: 0 } });  // Directly updating the state
     }
   }, [isFocused]);
+
+
+
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (state.form?.onionSkin === 'DOUBLE') {
+      updateState({
+        ...state,
+        form: {
+          ...state.form,
+          onionSkinPercent: '0'
+        }
+      });
+    }
+  }, [state.form?.onionSkin]);
 
   const loadData = () => {
     const url = '/api/dropdown/company';
@@ -69,7 +81,8 @@ const TestForm = () => {
     const selectedCompany = state?.fielddata?.companyid?.find(company => company.value === value);
     const companyName = selectedCompany ? selectedCompany.text : '';
     updateState({
-      form: { 'CNAName': companyName, companyid: value, branchvalue: '', districtid: '' },
+
+      form: { 'CNAName': companyName, companyId: value, branchvalue: '', DestinationDistrict: '' },
       fielddata: { branchid: [], districtid: [] }
     });
     if (!value) return;
@@ -193,7 +206,7 @@ const TestForm = () => {
             },
           });
 
-          console.log('Captured file:', newFile);
+
         }
       }
     );
@@ -202,6 +215,28 @@ const TestForm = () => {
 
 
   const handleNext = (nextStep: number) => {
+    // Validation for Step 1
+
+    let result: any;
+
+    if (currentStep === 0) {
+      result = validateStepOne(state.form);
+    } else if (currentStep === 1) {
+      result = validateStepTwo(state.form);
+    }
+
+    else if (currentStep === 2) {
+      result = validateStepThree(state.form);
+    }
+
+    if (!result?.isValid) {
+
+      alert(result.message);
+
+      return;
+    }
+
+
     updateState({
       ...state,
       hidden: {
@@ -271,42 +306,16 @@ const TestForm = () => {
     });
   };
 
-
   const handleSubmit = () => {
     let form = { ...state.form };
 
-    // Ensure Files array exists (using the exact key server expects)
-    if (!form.Files) {
-      form.Files = [];
-    }
-
-    const cform = form;
-
-    // Object.entries(form).forEach(([key, value]) => {
-    //   if (key !== 'Files' && value !== null && value !== undefined) {
-    //     cform.append(key, value);
-    //   }
-    // });
-
-    // Add files with proper formatting
-    form.Files.forEach((file, index) => {
-      cform.append(`Files`, {
-        uri: file.uri,
-        name: file.fileName || `file_${index}.jpg`,
-        type: file.type || 'image/jpeg'
-      } as any); // Cast to 'any' to bypass type-checking for compatibility
-    });
-
-    // Debug output
-    cform.forEach((value, key) => {
-      console.log( 'formdtaa' , key, value);
-    });
+    // 👇 Use the function directly
+    const cform = createFormData(form);
 
     api.post('/api/healthreport/receive', cform, {
       headers: {
         'Content-Type': 'multipart/form-data',
-   
-      }
+      },
     })
       .then(response => {
         console.log('Submission successful:', response.data);
@@ -317,6 +326,8 @@ const TestForm = () => {
         alert('Submission failed. Please check console for details.');
       });
   };
+
+
 
   useEffect(() => {
     if (state.form?.Trucknumber && state.form.Trucknumber.length >= 6) {
@@ -330,7 +341,7 @@ const TestForm = () => {
         `/api/healthreport?TruckNumber=${trucknumber}&ReportType=DISPATCH`
       );
 
-      console.log("API Response:", response.data);
+
 
       if (response.data && response.data.length > 0) {
         const reportId = response.data[0].id; // Pehla report ka ID le rahe hain
@@ -344,7 +355,7 @@ const TestForm = () => {
   const fetchReportDetails = async (id: any) => {
     try {
       const response = await api.get(`/api/healthreport/${id}`);
-      console.log("Report Details:", response.data);
+
 
       // Pehle reportDetails update karte hain
       updateState({
@@ -409,7 +420,7 @@ const TestForm = () => {
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={state?.form?.companyid}
+                    selectedValue={state?.form?.companyId}
                     onValueChange={(value) => handleSelectedCompany(value)}
                   >
                     <Picker.Item label="Select Company" value="" />
@@ -469,7 +480,7 @@ const TestForm = () => {
 
               <TextInput
                 style={styles.input}
-                placeholder={t('trucknumber')}
+                placeholder={t('Trucknumber')}
                 value={state.form?.Trucknumber || ''}
                 onChangeText={(text) => {
                   const upperText = text.toUpperCase();
@@ -598,7 +609,7 @@ const TestForm = () => {
                     })
                   }
                   trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                  thumbColor={state.form?.blackSmutOnion ? 'white' : '#f4f3f4'}
+                  thumbColor={state.form?.stainingColour ? 'white' : '#f4f3f4'}
                 />
               </View>
 
@@ -758,6 +769,7 @@ const TestForm = () => {
                   keyboardType="numeric"
                 />
               )}
+
 
               {/* Moisture */}
               <View style={styles.switchContainer}>

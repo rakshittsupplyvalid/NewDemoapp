@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginApp from '../Component/LoginApp';
-
 import Federation from '../Component/ReportOffline';
 import Navbar from '../../App/Navbar';
 import DispatchDrawernavigator from './DispatchDrawernavigator';

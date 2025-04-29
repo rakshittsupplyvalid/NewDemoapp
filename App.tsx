@@ -5,7 +5,7 @@ import { NavigationContainerRef } from '@react-navigation/native';
 
 type RootParamList = {};
 
-export const NavigationContext = React.createContext<NavigationContainerRef<RootParamList> | null>(null); // Named export
+export const NavigationContext = React.createContext<NavigationContainerRef<RootParamList> | null>(null); 
 
 const App = () => {
   const navigationRef = useRef<NavigationContainerRef<RootParamList> | null>(null);

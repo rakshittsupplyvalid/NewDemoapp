@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar, ImageBackground, Keyboard, Switch, Button } from 'react-native';
+import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar, ImageBackground, Keyboard, Switch, Button, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-elements';
 import api from '../service/api/apiInterceptors';
 import { mmkvStorage } from '../service/storage';
@@ -19,6 +19,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
   const [isConnected, setIsConnected] = useState(true);
   const [mobileno, setMobileno] = useState('9990665359');
   const [password, setPassword] = useState('Onion@2025');
+  const [isPressed, setIsPressed] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -89,6 +90,11 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
     }
   };
   
+  const handleNavigationOnce = () => {
+    if (isPressed) return; // Prevent multiple presses
+    setIsPressed(true);
+    handleNavigation(); // Your original function
+  };
 
   const handleNavigation = () => {
     if (isOffline) {
@@ -189,9 +195,17 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 
 
       <View style={styles.view}>
-        <TouchableOpacity style={styles.button} onPress={handleNavigation}>
-        <Text style={styles.buttonText}>{isOffline ? t('offlineButton') : t('loginButton')}</Text>
+        <TouchableOpacity style={styles.button}
+         onPress={ handleNavigationOnce}
+        disabled={isPressed}>
 
+{isPressed ? (
+      <ActivityIndicator color="#fff" size="small" />
+    ) : (
+      <Text style={styles.buttonText}>
+        {isOffline ? t('offlineButton') : t('loginButton')}
+      </Text>
+    )}
         </TouchableOpacity>
 
 
