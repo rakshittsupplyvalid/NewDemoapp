@@ -1,0 +1,7 @@
+{
+    "powermode.presets": "particles",
+    "powermode.enabled": false,
+    "powermode.shake.enabled": true,
+    "powermode.explosions.size": 0,
+    "powermode.combo.timeout": 10
+}

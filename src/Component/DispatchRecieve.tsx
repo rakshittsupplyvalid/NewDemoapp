@@ -13,7 +13,6 @@ const DispatchRecieve = () => {
   const [TruckimageUri, setTruckImageUri] = useState<string | null>(null);
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
-  const [inputValue, setInputValue] = useState('');
   const [selectedValue, setSelectedValue] = useState('');
 
   // Use RouteProp to define the type for the route

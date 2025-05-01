@@ -8,11 +8,8 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
-  Button,
   Pressable,
-  KeyboardAvoidingView,
-  Platform,
+
 
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -25,6 +22,7 @@ import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Navbar from '../../App/Navbar';
 import { ScrollView } from 'react-native-gesture-handler';
+import useForm from '../../App/common/lib/useForm';
 
 
 type ImageAsset = {
@@ -34,6 +32,8 @@ type ImageAsset = {
 };
 
 const ReimbursementForm = () => {
+  const { state, updateState } = useForm();
+
   const [formData, setFormData] = useState({
     date: '',
     StartTripReading: '',
@@ -297,7 +297,7 @@ const ReimbursementForm = () => {
                   style={styles.input}
                   placeholder={t('selecteddate')}
                   value={formData.date}
-                  onChangeText={(text) => handleInputChange('date', text)}
+                
                   editable={false}
                 />
               </TouchableOpacity>
@@ -488,7 +488,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 20,                          // Increase font size for a bold look
+    fontSize: 18,                          // Increase font size for a bold look
     marginTop: 20,                         // Increase margin-top to give more space
     fontWeight: '700',                      // Use a bolder font weight
     color: '#F79B00',                       // A deeper color for a more professional look

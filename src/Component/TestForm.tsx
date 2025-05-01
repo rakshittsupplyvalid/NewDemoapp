@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Switch, Modal, Image, FlatList, Button } from 'react-native';
+import { View, Text, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, TouchableOpacity, TextInput, Switch, Modal, Image, FlatList, Button, ActivityIndicator } from 'react-native';
 import useForm from '../../App/common/lib/useForm';
 import api from '../service/api/apiInterceptors';
 import { Picker } from '@react-native-picker/picker';
+
 import styles from '../theme/Healthreport';
 import Navbar from '../../App/Navbar';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -21,6 +22,7 @@ const TestForm = () => {
   const { t } = useTranslation();
   const { state, updateState } = useForm();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   const currentStep = state?.hidden?.currentStep || 0;
   const [selectedImage, setSelectedImage] = useState(null);
   const previousSteps = state?.hidden?.previousSteps || [];
@@ -262,7 +264,7 @@ const TestForm = () => {
     }
   };
 
-  const handleDateConfirm = (selectedDate) => {
+  const handleDateConfirm = (selectedDate: Date) => {
     setDatePickerVisibility(false);
     if (selectedDate) {
       updateState({
@@ -320,6 +322,13 @@ const TestForm = () => {
       .then(response => {
         console.log('Submission successful:', response.data);
         alert('Form submitted successfully!');
+
+        updateState({
+          ...state,
+          form: null,
+          hidden: { ...state.hidden, currentStep: 0 },
+
+        });
       })
       .catch(error => {
         console.error('Submission failed:', error.response?.data || error);
@@ -423,7 +432,7 @@ const TestForm = () => {
                     selectedValue={state?.form?.companyId}
                     onValueChange={(value) => handleSelectedCompany(value)}
                   >
-                    <Picker.Item label="Select Company" value="" />
+                    <Picker.Item label={t('SelectCompany')} value="" />
                     {state?.fielddata?.companyid?.map((x) => (
                       <Picker.Item key={x.value} label={x.text} value={x.value} />
                     ))}
@@ -438,7 +447,7 @@ const TestForm = () => {
                     selectedValue={state?.form?.branchvalue}
                     onValueChange={(id) => handleSelectedBranch(id)}
                   >
-                    <Picker.Item label="Select Branch" value="" />
+                    <Picker.Item label={t('SelectedBranch')} value="" />
                     {state?.fielddata?.branchid?.map((x) => (
                       <Picker.Item key={x.id} label={x.name} value={x.id} />
                     ))}
@@ -457,7 +466,7 @@ const TestForm = () => {
                     }
                     onValueChange={(value) => handleSelectedDistrict(value)}
                   >
-                    <Picker.Item label="Select District" value="" />
+                    <Picker.Item label={t('SelectedDistrict')} value="" />
                     {state?.fielddata?.districtid?.map((x) => (
                       <Picker.Item key={x.value} label={x.text} value={x.value} />
                     ))}
@@ -468,7 +477,7 @@ const TestForm = () => {
 
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={() => handleNext(1)}>
-                  <Text style={styles.buttonText}>Next</Text>
+                  <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -480,7 +489,7 @@ const TestForm = () => {
 
               <TextInput
                 style={styles.input}
-                placeholder={t('Trucknumber')}
+                placeholder={t('TruckNumber')}
                 value={state.form?.Trucknumber || ''}
                 onChangeText={(text) => {
                   const upperText = text.toUpperCase();
@@ -581,10 +590,10 @@ const TestForm = () => {
 
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>Previous</Text>
+                  <Text style={styles.buttonText}>{t('Previous')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleNext(2)}>
-                  <Text style={styles.buttonText}>Next</Text>
+                  <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -614,19 +623,27 @@ const TestForm = () => {
               </View>
 
               {state.form?.stainingColour && (
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('StainingPercent')}
-                  value={state.form?.stainingColourPercent || ''}
-                  onChangeText={(text) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, stainingColourPercent: text }
-                    })
-                  }
-                  keyboardType="numeric"
-                />
+                <>
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('StainingPercent')}
+                    value={state.form?.stainingColourPercent || ''}
+                    onChangeText={(text) =>
+                      updateState({
+                        ...state,
+                        form: { ...state.form, stainingColourPercent: text }
+                      })
+                    }
+                    keyboardType="numeric"
+                  />
+                  {parseFloat(state.form?.stainingColourPercent) > 100 && (
+                    <Text style={styles.validationText}>
+                      {t('StainingcolorWaringText')}
+                    </Text>
+                  )}
+                </>
               )}
+
 
               {/* Black Smut Onion */}
               <View style={styles.switchContainer}>
@@ -649,18 +666,26 @@ const TestForm = () => {
               </View>
 
               {state.form?.blackSmutOnion && (
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('BlacksmutOnionpercent')}
-                  value={state.form?.blackSmutPercent || ''}
-                  onChangeText={(text) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, blackSmutPercent: text }
-                    })
-                  }
-                  keyboardType="numeric"
-                />
+                <>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('BlacksmutOnionpercent')}
+                    value={state.form?.blackSmutPercent || ''}
+                    onChangeText={(text) =>
+                      updateState({
+                        ...state,
+                        form: { ...state.form, blackSmutPercent: text }
+                      })
+                    }
+                    keyboardType="numeric"
+                  />
+                  {parseFloat(state.form?.blackSmutPercent) > 100 && (
+                    <Text style={styles.validationText}>
+                      {t('BlacksmutText')}
+                    </Text>
+                  )}
+                </>
               )}
 
               {/* Sprouted Onion */}
@@ -684,18 +709,27 @@ const TestForm = () => {
               </View>
 
               {state.form?.sproutedOnion && (
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('SproutedOnionpercent')}
-                  value={state.form?.sproutedPercent || ''}
-                  onChangeText={(text) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, sproutedPercent: text }
-                    })
-                  }
-                  keyboardType="numeric"
-                />
+                <>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('SproutedOnionpercent')}
+                    value={state.form?.sproutedPercent || ''}
+                    onChangeText={(text) =>
+                      updateState({
+                        ...state,
+                        form: { ...state.form, sproutedPercent: text }
+                      })
+                    }
+                    keyboardType="numeric"
+                  />
+                  {parseFloat(state.form?.sproutedPercent) > 100 && (
+                    <Text style={styles.validationText}>
+                      {t('SproutedText')}
+                    </Text>
+                  )}
+
+                </>
               )}
 
               {/* Spoiled Onion */}
@@ -719,18 +753,28 @@ const TestForm = () => {
               </View>
 
               {state.form?.spoiledOnion && (
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('SpoiledOnionpercent')}
-                  value={state.form?.spoiledPercent || ''}
-                  onChangeText={(text) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, spoiledPercent: text }
-                    })
-                  }
-                  keyboardType="numeric"
-                />
+                <>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('SpoiledOnionpercent')}
+                    value={state.form?.spoiledPercent || ''}
+                    onChangeText={(text) =>
+                      updateState({
+                        ...state,
+                        form: { ...state.form, spoiledPercent: text }
+                      })
+                    }
+                    keyboardType="numeric"
+                  />
+
+                  {parseFloat(state.form?.spoiledPercent) > 100 && (
+                    <Text style={styles.validationText}>
+                      {t('SpoiledText')}
+                    </Text>
+                  )}
+
+                </>
               )}
 
               {/* Onion Skin */}
@@ -756,18 +800,27 @@ const TestForm = () => {
               </View>
 
               {state.form?.onionSkin === "SINGLE" && (
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('Onionskinsinglepercent')}
-                  value={state.form?.onionSkinPercent || ''}
-                  onChangeText={(text) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, onionSkinPercent: text }
-                    })
-                  }
-                  keyboardType="numeric"
-                />
+                <>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('Onionskinsinglepercent')}
+                    value={state.form?.onionSkinPercent || ''}
+                    onChangeText={(text) =>
+                      updateState({
+                        ...state,
+                        form: { ...state.form, onionSkinPercent: text }
+                      })
+                    }
+                    keyboardType="numeric"
+                  />
+                  {parseFloat(state.form?.onionSkinPercent) > 100 && (
+                    <Text style={styles.validationText}>
+                      {t('OnionSkinSingle')}
+                    </Text>
+                  )}
+
+                </>
               )}
 
 
@@ -794,18 +847,28 @@ const TestForm = () => {
               </View>
 
               {state.form?.moisture === "WET" && (
-                <TextInput
-                  style={styles.input}
-                  placeholder={t('Moisturewetpercent')}
-                  value={state.form?.moisturePercent || ''}
-                  onChangeText={(text) =>
-                    updateState({
-                      ...state,
-                      form: { ...state.form, moisturePercent: text }
-                    })
-                  }
-                  keyboardType="numeric"
-                />
+                <>
+
+                  <TextInput
+                    style={styles.input}
+                    placeholder={t('Moisturewetpercent')}
+                    value={state.form?.moisturePercent || ''}
+                    onChangeText={(text) =>
+                      updateState({
+                        ...state,
+                        form: { ...state.form, moisturePercent: text }
+                      })
+                    }
+                    keyboardType="numeric"
+                  />
+
+                  {parseFloat(state.form?.moisturePercent) > 100 && (
+                    <Text style={styles.validationText}>
+                      {t('MoistureWet')}
+                    </Text>
+                  )}
+
+                </>
               )}
 
               {/* Spoiled Switch and Percent */}
@@ -867,10 +930,10 @@ const TestForm = () => {
               {/* Navigation Buttons */}
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>Previous</Text>
+                  <Text style={styles.buttonText}>{t('Previous')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.button} onPress={() => handleNext(3)}>
-                  <Text style={styles.buttonText}>Next</Text>
+                  <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -883,11 +946,23 @@ const TestForm = () => {
             <View style={{ flex: 1, padding: 20 }}>
               {/* Camera Button */}
               <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={requestCameraPermission}
+                  disabled={(state.form?.Files || []).length >= 9}
+                >
                   <MaterialIcons name="camera" size={30} color="white" />
                   <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* Image Upload Error Message */}
+              {(state.form?.Files || []).length < 3 && (state.form?.Files || []).length > 0 && (
+                <Text style={styles.errorText}>{t('Youneedtouploadatleast3images')}</Text>
+              )}
+              {(state.form?.Files || []).length > 9 && (
+                <Text style={styles.errorText}>{t('Youcanuploadamaximumof9mages')}</Text>
+              )}
 
               {/* Previous and Submit Buttons */}
               <View style={styles.buttoncontent}>
@@ -895,8 +970,22 @@ const TestForm = () => {
                   <Text style={styles.buttonText}>{t('Previous')}</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>{t('submit')}</Text>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleSubmit}
+
+
+                  disabled={(state.form?.Files || []).length < 3 || (state.form?.Files || []).length > 9 || isPressed} // Disable submit if image count is out of range
+                >
+
+                  {isPressed ? (
+                    <ActivityIndicator color="#fff" size="small" />
+                  ) : (
+                    <Text style={styles.buttonText}>
+                      {t('submit')}
+                    </Text>
+                  )}
+
                 </TouchableOpacity>
               </View>
 
@@ -933,6 +1022,7 @@ const TestForm = () => {
               </Modal>
             </View>
           )}
+
 
 
 

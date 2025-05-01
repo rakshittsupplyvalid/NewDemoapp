@@ -14,6 +14,7 @@ api.interceptors.request.use(
   async (config) => {
     if (!cachedToken) {
       cachedToken = await mmkvStorage.getItem('token');
+      console.log('Token fetched from storage:', cachedToken);
     }
     if (cachedToken) {
       config.headers.Authorization = `Bearer ${cachedToken}`;

@@ -44,8 +44,12 @@ export function validateStepTwo(formData) {
   }
 
   // Gross/Tare weight > 0
-  if (+formData.grossWeight <= 0 || +formData.tareWeight <= 0) {
-    return { isValid: false, message: 'Gross and Tare weight must be greater than 0' };
+  if (+formData.grossWeight <= 0 || +formData.tareWeight <= 0 ) {
+    return { isValid: false, message: 'Gross and Tare weight must be greater than 0 and cannot be negative' };
+  }
+
+  if(+formData.netWeight <= 0) {
+    return { isValid: false, message: 'Net weight must be greater than 0 and cannot be negative' };
   }
 
   return { isValid: true };
@@ -73,6 +77,16 @@ export function validateStepThree(formData) {
     {
       condition: formData.spoiledOnion && !formData.spoiledPercent,
       message: 'Spoiled Percent is required',
+  
+    },
+    {
+      condition: formData.onionSkin === "SINGLE" && !formData.onionSkinPercent,
+      message: 'Onion Skin Single is required',
+  
+    },
+    {
+      condition: formData.moisture === "WET" && !formData.moisturePercent,
+      message: 'Moisture wet is required',
   
     },
 

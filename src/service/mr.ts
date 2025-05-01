@@ -96,5 +96,14 @@ export default {
   confirmPassword : "पासवर्डची पुष्टी करा",
   ResetPassword  : "पासवर्ड रीसेट करा",
   BacktoLogin : "लॉगिनवर परत जा",
-  Search : "शोध"
+  Search : "शोध",
+  SelectCompany : "कंपनी निवडा",
+  Youneedtouploadatleast3images : "तुम्हाला किमान 3 प्रतिमा अपलोड कराव्या लागतील", 
+  Youcanuploadamaximumof9mages : "तुम्ही जास्तीत जास्त 9 प्रतिमा अपलोड करू शकता",
+   StainingcolorWaringText : "डागाचे प्रमाण 100 पेक्षा जास्त नसावे",
+    BlacksmutText : "बब्लॅकस्मट टक्केवारी 100 पेक्षा जास्त नसावी",
+    SproutedText : "अंकुरित टक्केवारी 100 पेक्षा जास्त नसावी",
+      SpoiledText : "बिघडलेली टक्केवारी 100 पेक्षा जास्त नसावी",
+      OnionSkinSingle : "कांद्याच्या एकेरी सालीची टक्केवारी 100 पेक्षा जास्त नसावी",
+      MoistureWet : "ओलसर आर्द्रतेची टक्केवारी 100 पेक्षा जास्त नसावी"
 };

@@ -97,7 +97,21 @@ export default {
     confirmPassword : "पासवर्ड की पुष्टि करें",
     ResetPassword :  "पासवर्ड रीसेट करें",
     BacktoLogin : " लॉगिन पर वापस जाएं",
-    Search : "खोज"
+    Search : "खोज",
+    SelectCompany : "कंपनी चुनें" ,
+    Youneedtouploadatleast3images : "आपको कम से कम 3 छवियाँ अपलोड करनी होंगी",
+     Youcanuploadamaximumof9mages : "आप अधिकतम 9 छवियाँ अपलोड कर सकते हैं",
+      StainingcolorWaringText : "दाग का प्रतिशत 100 से अधिक नहीं होना चाहिए",
+       BlacksmutText : "ब्लैकस्मट प्रतिशत 100 से अधिक नहीं होना चाहिए",
+    SproutedText : "  अंकुरित प्रतिशत 100 से अधिक नहीं होना चाहिए",
+      SpoiledText : "खराब प्रतिशत 100 से अधिक नहीं होना चाहिए",
+      OnionSkinSingle : "प्याज की एकल परत का प्रतिशत 100 से अधिक नहीं होना चाहिए",
+       MoistureWet : "गीली नमी का प्रतिशत 100 से अधिक नहीं होना चाहिए"
+
+ 
+
+
+
     
   
 }

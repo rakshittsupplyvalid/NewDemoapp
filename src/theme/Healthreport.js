@@ -9,6 +9,27 @@ const styles = StyleSheet.create({
     backgroundColor: 'white', // Light background for the entire screen
   },
 
+  errorText : {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+
+  validationText: {
+    color: 'red',
+    fontSize: 13, // optional
+    fontWeight: '500', // optional
+    position : 'relative',
+    top : -7,
+    
+    paddingVertical : 8
+    
+
+    
+  },
+  
+
   modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.95)',
