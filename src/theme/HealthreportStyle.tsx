@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 
 
  export const HealthreportStyle = StyleSheet.create({
@@ -11,6 +11,25 @@ import { StyleSheet } from 'react-native';
     one: { paddingHorizontal: 30 },
     card: { paddingHorizontal: 35, paddingVertical: 20, backgroundColor: 'white', borderRadius: 8, elevation: 3, marginVertical: 10 },
     row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    modalContainertwo: {
+      flex: 1,
+      backgroundColor: 'black',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    closeButtontwo: {
+      position: 'absolute',
+      top: 40,
+      right: 20,
+      zIndex: 10,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    fullImage: {
+      width: Dimensions.get('window').width,
+      height: Dimensions.get('window').height,
+    },
     rowone: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -36,6 +55,7 @@ import { StyleSheet } from 'react-native';
       backgroundColor: 'rgba(0, 0, 0, 0.6)', // Dark Transparent Overlay
       justifyContent: 'center',
       alignItems: 'center',
+      
   
   
     },
@@ -57,10 +77,18 @@ import { StyleSheet } from 'react-native';
       color: 'white'
   
     },
+
+    modalImage: {
+      width: 250,
+      height: 250,
+      marginRight: 10,
+      borderRadius: 10,
+    },
     modalContent: {
   
       borderTopColor: '#ffcc00',
       width: '90%',
+      height : '50%',
       backgroundColor: '#fff',
       borderBottomLeftRadius: 10, // Adjust the radius as needed
       borderBottomRightRadius: 10,

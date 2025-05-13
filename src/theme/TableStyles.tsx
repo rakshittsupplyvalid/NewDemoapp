@@ -128,7 +128,7 @@ export const tableStyles = StyleSheet.create({
     height: 200,
     borderRadius: 10,
     marginVertical: 10,
-    backgroundColor : "red"
+  
   },
   
   closeButtonText: {

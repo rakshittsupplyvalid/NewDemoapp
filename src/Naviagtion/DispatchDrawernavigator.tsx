@@ -4,21 +4,23 @@ import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import NetInfo from "@react-native-community/netinfo";
 
-import HealthReportlist from '../../src/Component/HealthReportlist';
-import DispatchReportlist from '../../src/Component/DispatchReportlist';
-import RecieveDhasboard from '../../src/Component/RecieveDhasboard';
-import Dispatchlist from '../../src/Component/Dispatchlist';
-import Recievelist from '../../src/Component/Recievelist';
-import ReimbursementForm from '../../src/Component/ReimbursementForm';
-import OfflineForm from '../../src/Component/OfflineForm';
+import HealthReportlist from '../Component/HealthReportlist';
+import DispatchReportlist from '../Component/DispatchReportlist';
+import RecieveDhasboard from '../Component/RecieveDhasboard';
+import Dispatchlist from '../Component/Dispatchlist';
+import Recievelist from '../Component/Recievelist';
+import ReimbursementForm from '../Component/ReimbursementForm';
+import OfflineForm from '../Component/OfflineForm';
 import api from '../service/api/apiInterceptors';
-import ReportOffline from '../../src/Component/ReportOffline';
-import SavedReport from '../../src/Component/SavedReport';
-import OfflineDashboard from '../../src/Component/OfflineDhasboard';
-import SubmitTruckData from '../../src/Component/SubmitTruckData';
-import LanguageSelector from '../../src/Component/Languages';
-import ReimbursementList from '../../src/Component/ReimbursementList';
-import TestForm from '../../src/Component/TestForm';
+import ReportOffline from '../Component/ReportOffline';
+import SavedReport from '../Component/SavedReport';
+import OfflineDashboard from '../Component/OfflineDhasboard';
+import SubmitTruckData from '../Component/SubmitTruckData';
+import LanguageSelector from '../Component/Languages';
+import ReimbursementList from '../Component/ReimbursementList';
+import TestForm from '../Component/TestForm';
+import ResetPassword from '../Component/ResetPassword';
+
 import { useTranslation } from 'react-i18next';
 
 
@@ -146,6 +148,9 @@ export default function DispatchDrawernavigator() {
               drawerIcon: ({ color, size }) => <Icon name="local-shipping" size={size} color={color} />,
             }}
           />
+
+
+         
           <Drawer.Screen
             name= {t('receiveTruckList')}
             component={Recievelist}
@@ -176,7 +181,7 @@ export default function DispatchDrawernavigator() {
                 <Icon name="save-alt" size={size} color={color} /> // Indicates saved reports
               ),
             }}
-          />
+          /> 
 
 
           <Drawer.Screen
@@ -207,6 +212,16 @@ export default function DispatchDrawernavigator() {
               drawerIcon: ({ color, size }) => (
                 <Icon name="language" size={size} color={color} />
               ),
+            }}
+          />
+
+
+           <Drawer.Screen
+            name="ResetPassword"
+            component={ResetPassword}
+            options={{
+              headerShown: false,
+              drawerIcon: ({ color, size }) => <Icon name="lock-outline" size={size} color={color} />,
             }}
           />
 

@@ -103,13 +103,22 @@ export default {
   BacktoLogin: " Back to Login",
   Search: "Search",
   SelectCompany: "Select Company",
+
+  
   Youneedtouploadatleast3images : "You need to upload at least 3 images",
+  
   Youcanuploadamaximumof9mages : "You can upload a maximum of 9 images",
+  
   StainingcolorWaringText : "Staining color must not be more than 100",
+  
   BlacksmutText : "BlackSmut Percent must not be more than 100",
+  
   SproutedText : " Sprouted Percent must not be more than 100",
+  
   SpoiledText : "Spoiled Percent must not be more than 100",
+  
   OnionSkinSingle : "Onion skin single percent must not be more than 100",
+  
   MoistureWet : "Moisture Wet percent must not be more than 100"
 
 

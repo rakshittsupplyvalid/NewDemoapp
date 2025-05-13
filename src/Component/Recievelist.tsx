@@ -69,6 +69,7 @@ const Recievelist = () => {
         onChangeText={setSearchQuery}
         style={styles.searchInput}
       />
+     
       </View>
       
 

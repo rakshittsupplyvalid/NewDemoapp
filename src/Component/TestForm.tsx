@@ -3,7 +3,7 @@ import { View, Text, KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, T
 import useForm from '../../App/common/lib/useForm';
 import api from '../service/api/apiInterceptors';
 import { Picker } from '@react-native-picker/picker';
-
+import DropDownPicker from 'react-native-dropdown-picker';
 import styles from '../theme/Healthreport';
 import Navbar from '../../App/Navbar';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -14,7 +14,7 @@ import { launchCamera } from 'react-native-image-picker';
 import { useIsFocused } from '@react-navigation/native';
 import { createFormData } from '../../App/common/lib/Formdata';
 import { validateStepOne, validateStepTwo, validateStepThree } from '../utils/FormValidation';// Assuming you have a validation function
-
+import md5 from 'md5';
 
 
 
@@ -22,11 +22,13 @@ const TestForm = () => {
   const { t } = useTranslation();
   const { state, updateState } = useForm();
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedHelthReport, setHelthReportCompany] = useState('');
   const [isPressed, setIsPressed] = useState(false);
   const currentStep = state?.hidden?.currentStep || 0;
   const [selectedImage, setSelectedImage] = useState(null);
   const previousSteps = state?.hidden?.previousSteps || [];
   const isFocused = useIsFocused();
+
 
   const today = new Date();
   const threeMonthsAgo = new Date();
@@ -37,8 +39,6 @@ const TestForm = () => {
       updateState({ form: null, hidden: { ...state.hidden, currentStep: 0 } });  // Directly updating the state
     }
   }, [isFocused]);
-
-
 
 
   useEffect(() => {
@@ -58,7 +58,7 @@ const TestForm = () => {
   }, [state.form?.onionSkin]);
 
   const loadData = () => {
-    const url = '/api/dropdown/company';
+    const url = `/api/group?GroupType=BRANCH&BranchType=RECEIVING&ApprovalStatus=APPROVED&IsActive=true&IsActive=false`;
     api.get(url).then((res) => {
       if (res?.data) {
         console.log("API Response Data:", res.data);
@@ -69,7 +69,7 @@ const TestForm = () => {
             companyid: res.data
           }
         };
-        console.log("Updated State Data:", updatedState);
+        console.log("Updated State Datas:", updatedState);
         updateState(updatedState);
       } else {
         console.log("No data found in API response.");
@@ -79,66 +79,47 @@ const TestForm = () => {
     });
   };
 
-  const handleSelectedCompany = (value) => {
-    const selectedCompany = state?.fielddata?.companyid?.find(company => company.value === value);
-    const companyName = selectedCompany ? selectedCompany.text : '';
-    updateState({
+  const handleSelectedCompany = (itemValue) => {
 
-      form: { 'CNAName': companyName, companyId: value, branchvalue: '', DestinationDistrict: '' },
-      fielddata: { branchid: [], districtid: [] }
-    });
-    if (!value) return;
-    let fielddata = { branchid: [] }
-    const url = `/api/group?GroupType=Branch&BranchType=Receiving&ApprovalStatus=APPROVED&CompanyId=${value}`;
-    api.get(url).then((res) => {
-      if (res?.data) {
-        fielddata.branchid = res.data.map((item) => ({
-          id: item.id,
-          name: item.name
-        }));
-        updateState({ fielddata });
-      }
-    });
-  };
 
-  const handleSelectedBranch = (value) => {
-    const selectbranch = state?.fielddata?.branchid?.find(x => x.id == value);
-    const branchname = selectbranch ? selectbranch.name : '';
-    updateState({
-
-      form: { 'DestinationBranch': branchname, branchvalue: value, districtid: '' },
-      fielddata: { districtid: [] }
-    });
-    // alert(branchname)
-    if (!value) return;
-    let fielddata = { districtid: [] }
-    const url = `/api/dropdown/group/${value}/location?locationType=GENERAL`;
-
-    api.get(url).then((res) => {
-      console.log('Response Datas:', res?.data);
-      if (res?.data) {
-        fielddata.districtid = res.data
-        updateState({ fielddata });
-      }
-    });
-  };
-
-  const handleSelectedDistrict = (selectedValue) => {
-    const selectedItem = state?.fielddata?.districtid?.find(
-      (item) => item.value === selectedValue
-    );
 
     updateState({
       ...state,
       form: {
         ...state.form,
-        DestinationDistrict: selectedItem?.text || ""  // Text store hoga
+        DestinationBranch: itemValue,
+
+      },
+      fielddata: {
+        ...state.fielddata,
+        branchid: [], // Reset branch list
       }
     });
+
+    // Then load locations for this company
+    const url = `/api/dropdown/group/${itemValue}/location`;
+    api.get(url)
+      .then((res) => {
+        if (res?.data?.length > 0) {
+          const updatedState = {
+            ...state,
+            fielddata: {
+              ...state.fielddata,
+              branchid: res.data
+            },
+            form: {
+              ...state.form,  // Preserve all fields including DestinationBranch
+              // DestinationDistrict: res.data[0].text,
+              StorageId: res.data[0].value
+            }
+          };
+          updateState(updatedState);
+        }
+      })
+      .catch(console.error);
   };
 
-
-
+  
 
   const handleDeleteImage = (index) => {
     const updatedImages = [...(state.form?.Files || [])];
@@ -152,102 +133,120 @@ const TestForm = () => {
     });
   };
 
-
-  const requestCameraPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.CAMERA
-        );
-        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Camera permission granted');
-          openCamera();
-        } else {
-          console.log('Camera permission denied');
-        }
-      } catch (err) {
-        console.warn(err);
+const requestCameraPermission = async () => {
+  if (Platform.OS === 'android') {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Camera permission granted');
+        openCamera();
+      } else {
+        console.log('Camera permission denied');
       }
-    } else {
-      openCamera(); // iOS me direct open
+    } catch (err) {
+      console.warn(err);
     }
-  };
+  } else {
+    openCamera(); // iOS me direct open
+  }
+};
 
-  const openCamera = () => {
-    launchCamera(
-      {
-        mediaType: 'photo',
-        includeBase64: false,
-        cameraType: 'back',
-        saveToPhotos: true,
-        quality: 0.4,
-        maxWidth: 700,
-        maxHeight: 700,
-      },
-      (response) => {
-        if (response.didCancel) {
-          console.log('User cancelled image picker');
-        } else if (response.errorMessage) {
-          console.log('ImagePicker Error: ', response.errorMessage);
-        } else if (response.assets && response.assets.length > 0) {
-          const capturedImage = response.assets[0];
 
+const openCamera = () => {
+  launchCamera(
+    {
+      mediaType: 'photo',
+      includeBase64: false,
+      cameraType: 'back',
+      saveToPhotos: true,
+      quality: 0.4,
+      maxWidth: 700,
+      maxHeight: 700,
+    },
+    (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorMessage) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        const capturedImage = response.assets[0];
+
+        // Generate MD5 hash from the image URI or fileName
+        const imageHash = md5(capturedImage.uri);
+
+        // Check if this hash already exists in the current list of files
+        const isDuplicate = state.form?.Files?.some(file => file.hash === imageHash);
+
+        if (isDuplicate) {
+          console.log('Duplicate image detected. Image will not be added.');
+        } else {
           const newFile = {
             uri: Platform.OS === 'android'
               ? capturedImage.uri
               : capturedImage.uri.replace('file://', ''),  // iOS mein remove karo, Android mein rehne do
             fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
             type: capturedImage.type || 'image/jpeg',
+            hash: imageHash, // Adding the MD5 hash
           };
 
-          // Update state using Files key (not images)
+          console.log('Generated MD5 Hash:', imageHash); // For debugging
+
+          // Update state with the new image (if not a duplicate)
           updateState({
             form: {
               ...state.form,
               Files: [...(state.form?.Files || []), newFile],
             },
           });
-
-
         }
       }
-    );
-  };
-
+    }
+  );
+};
 
 
   const handleNext = (nextStep: number) => {
-    // Validation for Step 1
+    let result: any = { isValid: true }; // Initialize with default valid state
 
-    let result: any;
-
+    // Step 0 validation (health report type selection)
     if (currentStep === 0) {
-      result = validateStepOne(state.form);
-    } else if (currentStep === 1) {
-      result = validateStepTwo(state.form);
-    }
-
+        if (!selectedHelthReport) {
+            alert('Please select a health report type');
+            return;
+        }
+        // No other validation needed for step 0
+    } 
+    // Step 1 validation
+    else if (currentStep === 1) {
+        result = validateStepOne(state.form);
+    } 
+    // Step 2 validation
     else if (currentStep === 2) {
-      result = validateStepThree(state.form);
+        result = validateStepTwo(state.form);
+    }
+    // Step 3 validation
+    else if (currentStep === 3) {
+        result = validateStepThree(state.form);
     }
 
-    if (!result?.isValid) {
-
-      alert(result.message);
-
-      return;
+    // Check validation result (only if we did validation)
+    if (currentStep !== 0 && !result?.isValid) {
+        alert(result.message);
+        return;
     }
 
-
+    // Proceed to next step
     updateState({
-      ...state,
-      hidden: {
-        ...state.hidden,
-        previousSteps: [...previousSteps, currentStep],
-        currentStep: nextStep
-      }
+        ...state,
+        hidden: {
+            ...state.hidden,
+            previousSteps: [...previousSteps, currentStep],
+            currentStep: nextStep
+        }
     });
-  };
+};
 
   const handlePrevious = () => {
     if (previousSteps.length > 0) {
@@ -308,13 +307,19 @@ const TestForm = () => {
     });
   };
 
+
   const handleSubmit = () => {
     let form = { ...state.form };
-
-    // 👇 Use the function directly
     const cform = createFormData(form);
 
-    api.post('/api/healthreport/receive', cform, {
+    // Determine the API endpoint based on selected health report type
+    const endpoint = selectedHelthReport === 'ca'
+      ? '/api/healthreport/ca/receive'
+      : '/api/healthreport/normal/receive';
+
+    setIsPressed(true); // Show loading indicator
+
+    api.post(endpoint, cform, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -322,20 +327,20 @@ const TestForm = () => {
       .then(response => {
         console.log('Submission successful:', response.data);
         alert('Form submitted successfully!');
-
         updateState({
           ...state,
           form: null,
           hidden: { ...state.hidden, currentStep: 0 },
-
         });
       })
       .catch(error => {
         console.error('Submission failed:', error.response?.data || error);
         alert('Submission failed. Please check console for details.');
+      })
+      .finally(() => {
+        setIsPressed(false); // Hide loading indicator
       });
   };
-
 
 
   useEffect(() => {
@@ -425,55 +430,29 @@ const TestForm = () => {
           {/* Step 1 - Company, Branch, District Selection */}
           {currentStep === 0 && (
             <View style={styles.onecontainers}>
-              {/* Company Picker */}
+
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
-                    selectedValue={state?.form?.companyId}
-                    onValueChange={(value) => handleSelectedCompany(value)}
+                    selectedValue={selectedHelthReport}
+                    onValueChange={(itemValue) => {
+                      setHelthReportCompany(itemValue);
+                      // You might want to reset the form when changing report type
+                      updateState({
+                        form: null,
+                        hidden: { ...state.hidden, currentStep: 0 }
+                      });
+                    }}
                   >
-                    <Picker.Item label={t('SelectCompany')} value="" />
-                    {state?.fielddata?.companyid?.map((x) => (
-                      <Picker.Item key={x.value} label={x.text} value={x.value} />
-                    ))}
+                    <Picker.Item label="Select Healthreport Type" value="" />
+                    <Picker.Item label="Normal" value="normal" />
+                    <Picker.Item label="CA" value="ca" />
                   </Picker>
-                </View>
-              </View>
 
-              {/* Branch Picker */}
-              <View style={styles.content}>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={state?.form?.branchvalue}
-                    onValueChange={(id) => handleSelectedBranch(id)}
-                  >
-                    <Picker.Item label={t('SelectedBranch')} value="" />
-                    {state?.fielddata?.branchid?.map((x) => (
-                      <Picker.Item key={x.id} label={x.name} value={x.id} />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
-
-              {/* District Picker */}
-              <View style={styles.content}>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={
-                      state?.fielddata?.districtid?.find(
-                        (item) => item.text === state?.form?.DestinationDistrict
-                      )?.value || ""
-                    }
-                    onValueChange={(value) => handleSelectedDistrict(value)}
-                  >
-                    <Picker.Item label={t('SelectedDistrict')} value="" />
-                    {state?.fielddata?.districtid?.map((x) => (
-                      <Picker.Item key={x.value} label={x.text} value={x.value} />
-                    ))}
-                  </Picker>
 
                 </View>
               </View>
+
 
               <View style={styles.buttoncontent}>
                 <TouchableOpacity style={styles.button} onPress={() => handleNext(1)}>
@@ -482,9 +461,68 @@ const TestForm = () => {
               </View>
             </View>
           )}
-
-          {/* Step 2 - Basic Information */}
           {currentStep === 1 && (
+            <View style={styles.onecontainers}>
+              {/* Company Picker */}
+              <View style={styles.content}>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={state?.form?.DestinationBranch}
+                    onValueChange={(itemValue) => {
+
+                      handleSelectedCompany(itemValue);
+                    }}
+                  >
+                    <Picker.Item label={t('SelectCompany')} value="" />
+                    {state?.fielddata?.companyid?.map((x) => (
+                      <Picker.Item key={x.id} label={x.name} value={x.id} />
+                    ))}
+                  </Picker>
+
+
+                </View>
+              </View>
+
+              {/* Branch Picker */}
+              <View style={styles.content}>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={state?.form?.branchvalue}
+                    onValueChange={(value) => {
+                      updateState({
+                        ...state,
+                        form: {
+                          ...state.form,
+                          branchvalue: value,
+                          StorageId: value // Assuming value is the StorageId
+                        }
+                      });
+                    }}
+
+                  >
+                    <Picker.Item label={t('SelectedBranch')} value="" />
+                    {state?.fielddata?.branchid?.map((x) => (
+                      <Picker.Item key={x.value} label={x.text} value={x.value} />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+
+
+
+              <View style={styles.buttoncontent}>
+                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+                  <Text style={styles.buttonText}>{t('Previous')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.button} onPress={() => handleNext(2)}>
+                  <Text style={styles.buttonText}>{t('Next')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          {/* Step 2 - Basic Information */}
+          {currentStep === 2 && (
             <View style={styles.onecontainers}>
 
               <TextInput
@@ -592,14 +630,13 @@ const TestForm = () => {
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
                   <Text style={styles.buttonText}>{t('Previous')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => handleNext(2)}>
+                <TouchableOpacity style={styles.button} onPress={() => handleNext(3)}>
                   <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
-
-          {currentStep === 2 && (
+         {currentStep === 3 && (
             <View style={styles.thirdcontainers}>
 
               {/* Staining Colour */}
@@ -932,17 +969,15 @@ const TestForm = () => {
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
                   <Text style={styles.buttonText}>{t('Previous')}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => handleNext(3)}>
+                <TouchableOpacity style={styles.button} onPress={() => handleNext(4)}>
                   <Text style={styles.buttonText}>{t('Next')}</Text>
                 </TouchableOpacity>
               </View>
 
             </View>
           )}
-
-
           {/* Step 4 - Review and Submit */}
-          {currentStep === 3 && (
+          {currentStep === 4 && (
             <View style={{ flex: 1, padding: 20 }}>
               {/* Camera Button */}
               <View style={styles.buttoncontent}>
@@ -1022,10 +1057,6 @@ const TestForm = () => {
               </Modal>
             </View>
           )}
-
-
-
-
 
         </ScrollView>
       </SafeAreaView>

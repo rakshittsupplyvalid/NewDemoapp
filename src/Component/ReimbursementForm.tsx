@@ -235,7 +235,7 @@ const ReimbursementForm = () => {
     });
 
     try {
-      const response = await api.post('/api/reimbursment', data, {
+      const response = await api.post('/api/Reimbursment', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Switch, ScrollView, SafeAreaView, Platform, Image,  PermissionsAndroid } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Switch, ScrollView, SafeAreaView, Platform, Image, PermissionsAndroid } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 import styles from '../theme/Healthreport';
 import moment from "moment";
@@ -27,22 +27,16 @@ const OfflineForm = () => {
   const [tareWeight, setTareWeight] = useState('');
   const [bagCount, setBagCount] = useState('');
   const [size, setSize] = useState('');
-    const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
 
 
   const [isComment, setIsComment] = useState(false);
-
   const [open, setOpen] = useState(false);
-
   const [currentStep, setCurrentStep] = useState(1);
-
   const [previousSteps, setPreviousSteps] = useState<number[]>([]);
-
   const [stainingColour, setStainingColour] = useState(false);
-
   const [stainingColourPercent, setStainingColourPercent] = useState('');
-  
   const [blackSmutOnion, setBlackSmutOnion] = useState(false);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -53,7 +47,7 @@ const OfflineForm = () => {
   const [sproutedPercent, setSproutedPercent] = useState('');
   const [spoiledOnion, setSpoiledOnion] = useState(false);
   const [spoiledPercent, setSpoiledPercent] = useState('');
-    const [onionSkin, setOnionSkin] = useState('DOUBLE');
+  const [onionSkin, setOnionSkin] = useState('DOUBLE');
   const [moisture, setMoisture] = useState('DRY');
   const [onionSkinPercent, setOnionSkinPercent] = useState('');
   const [moisturePercent, setMoisturePercent] = useState('');
@@ -62,7 +56,7 @@ const OfflineForm = () => {
   const [SpoliedPercent, setSpoliedPercent] = useState('');
   const [SpoliedBranch, setSpoliedBranch] = useState('');
   const [SpoliedComment, setSpoliedComment] = useState('');
-    const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
+  const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
 
   const today = new Date();
   const threeMonthsAgo = new Date();
@@ -86,7 +80,7 @@ const OfflineForm = () => {
     setSpoliedComment('');
     setImageUri(null); // 
   };
-  
+
 
   const saveFormOffline = (formData) => {
     try {
@@ -109,57 +103,57 @@ const OfflineForm = () => {
     }
   };
 
-    const requestCameraPermission = async () => {
-      if (Platform.OS === 'android') {
-        try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.CAMERA
-          );
-          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-            console.log('Camera permission granted');
-            openCamera(); // **Agar permission mil gayi to camera open hoga**
-          } else {
-            console.log('Camera permission denied');
-          }
-        } catch (err) {
-          console.warn(err);
+  const requestCameraPermission = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Camera permission granted');
+          openCamera(); // **Agar permission mil gayi to camera open hoga**
+        } else {
+          console.log('Camera permission denied');
         }
-      } else {
-        openCamera(); // iOS ke liye directly open kar do
+      } catch (err) {
+        console.warn(err);
       }
-    };
-  
-    const openCamera = () => {
-      launchCamera(
-        {
-          mediaType: 'photo',
-          includeBase64: false,
-          cameraType: 'back',
-          quality: 0.4,
-          maxWidth: 700,
-          maxHeight: 700,
-        },
-        (response: ImagePickerResponse) => {
-          if (response.didCancel) {
-            console.log('User cancelled image picker');
-          } else if (response.errorMessage) {
-            console.log('ImagePicker Error: ', response.errorMessage);
-          } else if (response.assets && response.assets.length > 0) {
-            const capturedImage = response.assets[0]; 
-  
-            console.log('Captured image URI:', capturedImage.uri); // Debugging ke liye
-  
-            const image = {
-              uri: capturedImage.uri ?? '',
-              fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
-              type: capturedImage.type || 'image/jpeg',
-            };
-  
-            setImageUri((prevImages) => [...prevImages, image]); // **Naye images add honge**
-          }
+    } else {
+      openCamera(); // iOS ke liye directly open kar do
+    }
+  };
+
+  const openCamera = () => {
+    launchCamera(
+      {
+        mediaType: 'photo',
+        includeBase64: false,
+        cameraType: 'back',
+        quality: 0.4,
+        maxWidth: 700,
+        maxHeight: 700,
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorMessage) {
+          console.log('ImagePicker Error: ', response.errorMessage);
+        } else if (response.assets && response.assets.length > 0) {
+          const capturedImage = response.assets[0];
+
+          console.log('Captured image URI:', capturedImage.uri); // Debugging ke liye
+
+          const image = {
+            uri: capturedImage.uri ?? '',
+            fileName: capturedImage.fileName || `photo_${Date.now()}.jpg`,
+            type: capturedImage.type || 'image/jpeg',
+          };
+
+          setImageUri((prevImages) => [...prevImages, image]); // **Naye images add honge**
         }
-      );
-    };
+      }
+    );
+  };
 
 
 
@@ -172,113 +166,113 @@ const OfflineForm = () => {
 
       // Length check (minimum length 6 and maximum length 12)
       if (truckNumber.length < 8 || truckNumber.length > 12) {
-          return false;
+        return false;
       }
 
       // Check for only alphabets and numbers (no special characters)
       if (!/^[A-Za-z0-9]+$/.test(truckNumber)) {
-          return false;
+        return false;
       }
 
       return true;
-  };
+    };
 
-     if (currentStep === 1) {
-          if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
-            Alert.alert("Validation Error", "All fields are required!");
+    if (currentStep === 1) {
+      if (!truckNumber || !grossWeight || !tareWeight || !date || !bagCount || !size) {
+        Alert.alert("Validation Error", "All fields are required!");
+        return;
+      }
+      if (!validateTruckNumber(truckNumber)) {
+        Alert.alert("Validation Error", "Enter a Valid Truck Number!");
+        return;
+      }
+    }
+
+
+
+    if (currentStep === 2) {
+      const validations = [
+        { key: 'Staining Colour', value: stainingColour, percent: stainingColourPercent },
+        { key: 'Black Smut Onion', value: blackSmutOnion, percent: BlackSmutPercent },
+        { key: 'Sprouted Onion', value: sproutedOnion, percent: sproutedPercent },
+        { key: 'Spoiled Onion', value: spoiledOnion, percent: spoiledPercent },
+      ];
+
+      for (const item of validations) {
+        if (item.value) {
+          if (!item.percent.trim()) {
+            Alert.alert("Validation error", `${item.key} Percent is required!`);
             return;
           }
-          if (!validateTruckNumber(truckNumber)) {
-            Alert.alert("Validation Error", "Enter a Valid Truck Number!");
+
+          const percent = parseFloat(item.percent.trim());
+          if (isNaN(percent) || percent < 1 || percent > 100) {
+            Alert.alert("Validation error", `${item.key} Percent must be between 1 and 100!`);
             return;
+          }
         }
-        }
-    
-     
-    
-        if (currentStep === 2) {
-          const validations = [
-            { key: 'Staining Colour', value: stainingColour, percent: stainingColourPercent },
-            { key: 'Black Smut Onion', value: blackSmutOnion, percent: BlackSmutPercent },
-            { key: 'Sprouted Onion', value: sproutedOnion, percent: sproutedPercent },
-            { key: 'Spoiled Onion', value: spoiledOnion, percent: spoiledPercent },
-          ];
-        
-          for (const item of validations) {
-            if (item.value) {
-              if (!item.percent.trim()) {
-                Alert.alert("Validation error", `${item.key} Percent is required!`);
-                return;
-              }
-        
-              const percent = parseFloat(item.percent.trim());
-              if (isNaN(percent) || percent < 1 || percent > 100) {
-                Alert.alert("Validation error", `${item.key} Percent must be between 1 and 100!`);
-                return;
-              }
-            }
-          }
-        
-          // Onion Skin
-          if (onionSkin === 'SINGLE') {
-            if (!onionSkinPercent.trim()) {
-              Alert.alert("Validation error", `Onion Skin Percent is required!`);
-              return;
-            }
-            const percent = parseFloat(onionSkinPercent.trim());
-            if (isNaN(percent) || percent < 1 || percent > 100) {
-              Alert.alert("Validation error", `Onion Skin Percent must be between 1 and 100!`);
-              return;
-            }
-          }
-        
-          // Moisture
-          if (moisture === 'WET') {
-            if (!moisturePercent.trim()) {
-              Alert.alert("Validation error", `Moisture Percent is required!`);
-              return;
-            }
-            const percent = parseFloat(moisturePercent.trim());
-            if (isNaN(percent) || percent < 1 || percent > 100) {
-              Alert.alert("Validation error", `Moisture Percent must be between 1 and 100!`);
-              return;
-            }
-          }
-        
+      }
 
-          // Spoiled Percent field (manual one)
-          if (isSpoiledPercentVisible) {
-            // Spoiled Percent validation
-            if (!SpoliedPercent.trim()) {
-              Alert.alert("Validation error", `Spoiled Percent is required!`);
-              return;
-            }
-          
-            const percent = parseFloat(SpoliedPercent.trim());
-            if (isNaN(percent) || percent < 1 || percent > 100) {
-              Alert.alert("Validation error", `Spoiled Percent must be between 1 and 100!`);
-              return;
-            }
-          
-            // Spoiled Comment validation
-            if (!SpoliedComment.trim()) {
-              Alert.alert("Validation error", "Spoiled Comment is required!");
-              return;
-            }
-          
-            // Branch Person Name validation
-            if (!SpoliedBranch.trim()) {
-              Alert.alert("Validation error", "Branch Person name is required!");
-              return;
-            }
-          }
-          
+      // Onion Skin
+      if (onionSkin === 'SINGLE') {
+        if (!onionSkinPercent.trim()) {
+          Alert.alert("Validation error", `Onion Skin Percent is required!`);
+          return;
         }
-        
-            setPreviousSteps([...previousSteps, currentStep]);
-            setCurrentStep(nextStep);
+        const percent = parseFloat(onionSkinPercent.trim());
+        if (isNaN(percent) || percent < 1 || percent > 100) {
+          Alert.alert("Validation error", `Onion Skin Percent must be between 1 and 100!`);
+          return;
+        }
+      }
 
- 
+      // Moisture
+      if (moisture === 'WET') {
+        if (!moisturePercent.trim()) {
+          Alert.alert("Validation error", `Moisture Percent is required!`);
+          return;
+        }
+        const percent = parseFloat(moisturePercent.trim());
+        if (isNaN(percent) || percent < 1 || percent > 100) {
+          Alert.alert("Validation error", `Moisture Percent must be between 1 and 100!`);
+          return;
+        }
+      }
+
+
+      // Spoiled Percent field (manual one)
+      if (isSpoiledPercentVisible) {
+        // Spoiled Percent validation
+        if (!SpoliedPercent.trim()) {
+          Alert.alert("Validation error", `Spoiled Percent is required!`);
+          return;
+        }
+
+        const percent = parseFloat(SpoliedPercent.trim());
+        if (isNaN(percent) || percent < 1 || percent > 100) {
+          Alert.alert("Validation error", `Spoiled Percent must be between 1 and 100!`);
+          return;
+        }
+
+        // Spoiled Comment validation
+        if (!SpoliedComment.trim()) {
+          Alert.alert("Validation error", "Spoiled Comment is required!");
+          return;
+        }
+
+        // Branch Person Name validation
+        if (!SpoliedBranch.trim()) {
+          Alert.alert("Validation error", "Branch Person name is required!");
+          return;
+        }
+      }
+
+    }
+
+    setPreviousSteps([...previousSteps, currentStep]);
+    setCurrentStep(nextStep);
+
+
   };
 
   const handleSubmit = () => {
@@ -287,11 +281,11 @@ const OfflineForm = () => {
     NetInfo.fetch().then(state => {
       if (!state.isConnected) {
         saveFormOffline({
-          truckNumber, grossWeight, tareWeight, netWeight, bagCount, size, date, stainingColourPercent, BlackSmutPercent, sproutedPercent, spoiledPercent, onionSkinPercent, moisturePercent, SpoliedPercent , SpoliedComment , imageUri
+          truckNumber, grossWeight, tareWeight, netWeight, bagCount, size, date, stainingColourPercent, BlackSmutPercent, sproutedPercent, spoiledPercent, onionSkinPercent, moisturePercent, SpoliedPercent, SpoliedComment, imageUri
         });
       }
     });
-  
+
     Alert.alert("Success", "Form submitted successfull!");
   };
 
@@ -304,9 +298,6 @@ const OfflineForm = () => {
     }
 
   };
-
-
-
   const hideDatePicker = () => {
     setDatePickerVisibility(false);
   };
@@ -333,13 +324,13 @@ const OfflineForm = () => {
     }
   };
 
-    useEffect(() => {
-  
-      const gross = parseFloat(grossWeight) || 0;
-      const tare = parseFloat(tareWeight) || 0;
-      setNetWeight((gross - tare).toString());
-    }, [grossWeight, tareWeight]);
-  
+  useEffect(() => {
+
+    const gross = parseFloat(grossWeight) || 0;
+    const tare = parseFloat(tareWeight) || 0;
+    setNetWeight((gross - tare).toString());
+  }, [grossWeight, tareWeight]);
+
 
 
 
@@ -348,7 +339,7 @@ const OfflineForm = () => {
 
     <SafeAreaView style={styles.container}>
 
-<Navbar />
+      <Navbar />
 
       <ScrollView contentContainerStyle={styles.scrollView}>
 
@@ -419,8 +410,8 @@ const OfflineForm = () => {
                   editable={false} // User manually edit nahi kar sakta
                   value={
                     date
-                        ? `${new Date(date).toLocaleDateString()} ${time ? new Date(time).toLocaleTimeString() : ""}`
-                        : t('selecteddate')
+                      ? `${new Date(date).toLocaleDateString()} ${time ? new Date(time).toLocaleTimeString() : ""}`
+                      : t('selecteddate')
                   }
                 />
               </View>
@@ -450,7 +441,7 @@ const OfflineForm = () => {
                 )
             }
 
-             <View style={styles.buttoncontent} >
+            <View style={styles.buttoncontent} >
               <TouchableOpacity style={styles.button} onPress={() => handleNext(currentStep + 1)}>
                 <Text style={styles.buttonText}>{t('Next')}</Text>
               </TouchableOpacity>
@@ -494,7 +485,7 @@ const OfflineForm = () => {
                     setBlackSmutOnion(value);
                     if (!value) setBlackSmatPercent('');
                   }}
-                  trackColor={{ false: '#F6A00191', true: '#FF9500' }} 
+                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
                   thumbColor={stainingColour ? 'white' : '#f4f3f4'} // White thumb when ON
                 />
               </View>
@@ -553,63 +544,63 @@ const OfflineForm = () => {
                 />
               )}
 
-<View style={styles.switchContainer}>
-                  <Text style={styles.text}>
-                    {t('Onionskin') + ' : ' + (onionSkin === 'SINGLE' ? t('Single') : t('Double'))}
-                  </Text>
+              <View style={styles.switchContainer}>
+                <Text style={styles.text}>
+                  {t('Onionskin') + ' : ' + (onionSkin === 'SINGLE' ? t('Single') : t('Double'))}
+                </Text>
 
-                  <Switch
-                    value={onionSkin === "SINGLE"}
-                    onValueChange={(value) => {
-                      if (value) {
-                        setOnionSkin("SINGLE");
-                      } else {
-                        setOnionSkin("DOUBLE");
-                        setOnionSkinPercent(""); // DOUBLE hone par input clear
-                      }
-                    }}
-                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                    thumbColor={onionSkin === "SINGLE" ? "white" : "#f4f3f4"}
-                  />
-                </View>
+                <Switch
+                  value={onionSkin === "SINGLE"}
+                  onValueChange={(value) => {
+                    if (value) {
+                      setOnionSkin("SINGLE");
+                    } else {
+                      setOnionSkin("DOUBLE");
+                      setOnionSkinPercent(""); // DOUBLE hone par input clear
+                    }
+                  }}
+                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
+                  thumbColor={onionSkin === "SINGLE" ? "white" : "#f4f3f4"}
+                />
+              </View>
 
-                {onionSkin === "SINGLE" && (
-                  <TextInput
-                    style={styles.input}
-                    placeholder={t('Onionskinsinglepercent')}
-                    value={onionSkinPercent}
-                    onChangeText={setOnionSkinPercent}
-                    keyboardType="numeric"
-                  />
-                )}
-
-
+              {onionSkin === "SINGLE" && (
+                <TextInput
+                  style={styles.input}
+                  placeholder={t('Onionskinsinglepercent')}
+                  value={onionSkinPercent}
+                  onChangeText={setOnionSkinPercent}
+                  keyboardType="numeric"
+                />
+              )}
 
 
 
-<View style={styles.switchContainer}>
-                  <Text style={styles.text}>
-                    {t('Moisture') + ' : ' + (moisture === 'WET' ? t('Wet') : t('Dry'))}
 
-                  </Text>
-                  <Switch
-                    value={moisture === "WET"}
-                    onValueChange={(value) => {
-                      if (value) {
-                        setMoisture("WET");
-                      } else {
-                        setMoisture("DRY");
-                        setMoisturePercent(""); // DRY hone par input clear
-                      }
-                    }}
-                    trackColor={{ false: '#F6A00191', true: '#FF9500' }}
-                    thumbColor={moisture === "WET" ? "white" : "#f4f3f4"}
-                  />
-                </View>
 
-                {moisture === "WET" 
+              <View style={styles.switchContainer}>
+                <Text style={styles.text}>
+                  {t('Moisture') + ' : ' + (moisture === 'WET' ? t('Wet') : t('Dry'))}
+
+                </Text>
+                <Switch
+                  value={moisture === "WET"}
+                  onValueChange={(value) => {
+                    if (value) {
+                      setMoisture("WET");
+                    } else {
+                      setMoisture("DRY");
+                      setMoisturePercent(""); // DRY hone par input clear
+                    }
+                  }}
+                  trackColor={{ false: '#F6A00191', true: '#FF9500' }}
+                  thumbColor={moisture === "WET" ? "white" : "#f4f3f4"}
+                />
+              </View>
+
+              {moisture === "WET"
                 &&
-                 (
+                (
                   <TextInput
                     style={styles.input}
                     placeholder={t('Moisturewetpercent')}
@@ -656,7 +647,7 @@ const OfflineForm = () => {
 
 
               <View style={styles.buttoncontent} >
-     
+
 
                 <TouchableOpacity style={styles.button} onPress={handlePrevious}>
                   <Text style={styles.buttonText}>{t('Previous')}</Text>
@@ -683,54 +674,48 @@ const OfflineForm = () => {
         )}
 
 
-{currentStep === 3 && (
-            <View>
-              <View style={styles.centerContainer}>
-                <Text style={styles.title}>{t('CaptureImage')}</Text>
-              </View>
-
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
-                  <MaterialIcons name="camera" size={30} color="white" />
-                  <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
-                </TouchableOpacity>
-
-
-
-              </View>
-              {/* <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={openGallery}>
-                  <MaterialIcons name="photo-library" size={30} color="white" />
-                  <Text style={styles.buttonText}>Pick from Gallery</Text>
-                </TouchableOpacity>
-              </View> */}
-
-              <View style={styles.buttoncontent}>
-                <TouchableOpacity style={styles.button} onPress={handlePrevious}>
-                  <Text style={styles.buttonText}>{t('Previous')}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>{t('submit')}</Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Image Grid */}
-              <View style={styles.imageGrid}>
-                {imageUri.map((img, index) => (
-                  <View key={index} style={styles.imageContainer}>
-                    <Image source={{ uri: img.uri }} style={styles.image} />
-                  </View>
-                ))}
-              </View>
+        {currentStep === 3 && (
+          <View>
+            <View style={styles.centerContainer}>
+              <Text style={styles.title}>{t('CaptureImage')}</Text>
             </View>
-          )}
+
+            <View style={styles.buttoncontent}>
+              <TouchableOpacity style={styles.button} onPress={requestCameraPermission}>
+                <MaterialIcons name="camera" size={30} color="white" />
+                <Text style={styles.buttonText}>{t('PickfromCamera')}</Text>
+              </TouchableOpacity>
+
+
+
+            </View>
+         
+            <View style={styles.buttoncontent}>
+              <TouchableOpacity style={styles.button} onPress={handlePrevious}>
+                <Text style={styles.buttonText}>{t('Previous')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+                <Text style={styles.buttonText}>{t('submit')}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Image Grid */}
+            <View style={styles.imageGrid}>
+              {imageUri.map((img, index) => (
+                <View key={index} style={styles.imageContainer}>
+                  <Image source={{ uri: img.uri }} style={styles.image} />
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
       </ScrollView>
 
 
 
-      </SafeAreaView>
+    </SafeAreaView>
 
   );
 };

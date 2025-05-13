@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, StyleSheet, Text, FlatList, ActivityIndicator, View, TextInput } from 'react-native';
 import Navbar from '../../App/Navbar';
-import api from '../service/api/apiInterceptors';
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
@@ -11,39 +10,61 @@ const DispatchReportList = () => {
   const [filteredReports, setFilteredReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [pageNumber, setPageNumber] = useState(1);
-  const [hasMoreData, setHasMoreData] = useState(true);
-  const pageSize = 30;
   const { t } = useTranslation();
+
+  // Generate 3 dummy reports
+  const generateDummyReports = () => {
+    return [
+      {
+        id: '1',
+        assayername: 'Assayer 1',
+        trucknumber: 'TRUCK1234',
+        date: new Date().toISOString(),
+        approvalstatus: 'Approved',
+        datastring: JSON.stringify({
+          GrossWeight: '2500 kg',
+          NetWeight: '2000 kg',
+          TareWeight: '500 kg'
+        })
+      },
+      {
+        id: '2',
+        assayername: 'Assayer 2',
+        trucknumber: 'TRUCK5678',
+        date: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+        approvalstatus: 'Pending',
+        datastring: JSON.stringify({
+          GrossWeight: '3000 kg',
+          NetWeight: '2400 kg',
+          TareWeight: '600 kg'
+        })
+      },
+      {
+        id: '3',
+        assayername: 'Assayer 3',
+        trucknumber: 'TRUCK9012',
+        date: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+        approvalstatus: 'Rejected',
+        datastring: JSON.stringify({
+          GrossWeight: '2800 kg',
+          NetWeight: '2200 kg',
+          TareWeight: '600 kg'
+        })
+      }
+    ];
+  };
 
   useFocusEffect(
     useCallback(() => {
       setSearchQuery('');
-      setPageNumber(1);
-      setHasMoreData(true);
+      // Load dummy data when screen comes into focus
+      setLoading(true);
+      const dummyData = generateDummyReports();
+      setReports(dummyData);
+      setFilteredReports(dummyData);
+      setLoading(false);
     }, [])
   );
-
-  const fetchHealthReports = async () => {
-    if (!hasMoreData || loading) return;
-    setLoading(true);
-    try {
-      const url = `/api/healthreport?ReportType=DISPATCH&PageNumber=${pageNumber}&PageSize=${pageSize}`;
-      const response = await api.get(url);
-      const newReports = response.data || [];
-      const updatedReports = pageNumber === 1 ? newReports : [...reports, ...newReports];
-
-      setReports(updatedReports);
-      setFilteredReports(filterReports(updatedReports, searchQuery));
-      if (newReports.length < pageSize) {
-        setHasMoreData(false);
-      }
-    } catch (error) {
-      console.error('Error fetching health reports:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filterReports = (data, query) => {
     if (!query) return data;
@@ -59,18 +80,8 @@ const DispatchReportList = () => {
   };
 
   useEffect(() => {
-    fetchHealthReports();
-  }, [pageNumber]);
-
-  useEffect(() => {
     setFilteredReports(filterReports(reports, searchQuery));
   }, [searchQuery, reports]);
-
-  const handleLoadMore = () => {
-    if (!loading && hasMoreData) {
-      setPageNumber(prevPage => prevPage + 1);
-    }
-  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -86,7 +97,7 @@ const DispatchReportList = () => {
 
       <FlatList
         data={filteredReports}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.one}>
             <View style={styles.card}>
@@ -104,11 +115,19 @@ const DispatchReportList = () => {
                 <Text style={styles.label}>{t('TruckNumber')}</Text>
                 <Text style={styles.value}>{item.trucknumber}</Text>
               </View>
+              <View style={styles.row}>
+                <Text style={styles.label}>Status</Text>
+                <Text style={[
+                  styles.value,
+                  item.approvalstatus === 'Approved' && { color: 'green' },
+                  item.approvalstatus === 'Rejected' && { color: 'red' }
+                ]}>
+                  {item.approvalstatus}
+                </Text>
+              </View>
             </View>
           </View>
         )}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
         ListFooterComponent={loading ? <ActivityIndicator size="large" color="blue" /> : null}
         ListEmptyComponent={!loading && <Text style={{ textAlign: 'center', marginTop: 20 }}>No Data Found</Text>}
       />
@@ -120,16 +139,31 @@ const styles = StyleSheet.create({
   one: { paddingHorizontal: 30, backgroundColor: 'white' },
   card: {
     paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingVertical: 20,
     backgroundColor: 'white',
     borderRadius: 8,
     elevation: 3,
     marginVertical: 10,
-    height: 175,
+    height: 200,
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  label: { fontWeight: 'bold', color: '#333', flex: 0.5, fontSize: 15 },
-  value: { color: '#555', flex: 0.5, flexWrap: 'wrap' },
+  row: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 8 
+  },
+  label: { 
+    fontWeight: 'bold', 
+    color: '#333', 
+    flex: 0.5, 
+    fontSize: 15 
+  },
+  value: { 
+    color: '#555', 
+    flex: 0.5, 
+    flexWrap: 'wrap',
+    textAlign: 'right'
+  },
   topRightCorner: {
     position: 'absolute',
     top: 0,
@@ -164,4 +198,3 @@ const styles = StyleSheet.create({
 });
 
 export default DispatchReportList;
-

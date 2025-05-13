@@ -22,7 +22,6 @@ const styles = StyleSheet.create({
     fontWeight: '500', // optional
     position : 'relative',
     top : -7,
-    
     paddingVertical : 8
     
 
@@ -104,13 +103,25 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   content: {
-    marginBottom: 20,
+    marginVertical: 10,
+    paddingHorizontal: 3,
   },
   pickerContainer: {
-    borderWidth: 1,
+    backgroundColor: '#fff',
     borderColor: '#FF9500',
+    borderWidth: 1,
     borderRadius: 50,
-    backgroundColor: '#ffffff',
+    minHeight: 50,
+    zIndex: 10, // Ensure proper stacking
+ 
+
+  },
+  dropDownContainer: {
+    backgroundColor: '#f9f9f9',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    zIndex: 1000, // Make sure dropdown is above other content
   },
   picker: {
     height: 50,

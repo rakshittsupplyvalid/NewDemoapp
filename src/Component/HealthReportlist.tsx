@@ -18,10 +18,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ImageViewing from "react-native-image-viewing";
 
 import moment from "moment";
-import {useTranslation} from 'react-i18next';
-// import { HealthreportStyle } from '../../theme/HealthreportStyle';
+import { useTranslation } from 'react-i18next';
 import { HealthreportStyle } from '../theme/HealthreportStyle';
- 
+
 import { useFocusEffect } from '@react-navigation/native';
 
 
@@ -44,18 +43,18 @@ const HealthReportlist = () => {
 
   const [hasMoreData, setHasMoreData] = useState(true);
   const pageSize = 30; // Default page size
-     const { t ,  i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
 
 
-     
 
- 
-     useFocusEffect(
-      React.useCallback(() => {
-        setSearchQuery('');
-      }, [])
-    );
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setSearchQuery('');
+    }, [])
+  );
 
 
 
@@ -73,21 +72,19 @@ const HealthReportlist = () => {
       setLoading(false);
     }
   };
- 
 
-
-
-  
   const fetchReports = async (isInitialLoad = false) => {
     if (!hasMoreData || loading || !userId) return;
 
     setLoading(true);
     try {
       const response = await api.get(
-        `/api/healthreport?ReportType=RECEIVE&PageNumber=${pageNumber}&PageSize=${pageSize}&AssayerId=${userId}`
+        `/api/healthreport?ReportType=RECEIVE`
       );
+     
 
-      console.log("Response datasss:", response);
+      console.log('resposne' , response.data )
+
 
       const newReports = response.data || [];
       if (isInitialLoad) {
@@ -122,25 +119,26 @@ const HealthReportlist = () => {
 
   useEffect(() => {
     let filteredData = reports;
-  
+
     if (searchQuery) {
       filteredData = filteredData.filter(item => {
         const formattedDate = moment(item.date).add(5, "hours").format("DD-MM-YYYY");
         return (
-          item.assayername.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.trucknumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.assayerName.toUpperCase().includes(searchQuery.toUpperCase()) ||
+          item.truckNumber.toUpperCase().includes(searchQuery.toUpperCase()) ||
           formattedDate.includes(searchQuery)
         );
       });
     }
-  
+
     setFilteredReports(filteredData);
   }, [searchQuery, reports]);
-  
-  
+
+
   const fetchReportDetails = async (id: any) => {
     try {
       const response = await api.get(`/api/healthreport/${id}`);
+      console.log('recieve', response)
       setSelectedReport(response.data);
       setModalVisible(true);
       setShowImages(false);
@@ -224,17 +222,22 @@ const HealthReportlist = () => {
               <View style={HealthreportStyle.bottomLeftCorner} />
               <View style={HealthreportStyle.row}>
                 <Text style={HealthreportStyle.label}>{t('assyarerName')}</Text>
-                <Text style={HealthreportStyle.value}>{item.assayername}</Text>
+                <Text style={HealthreportStyle.value}>{item.assayerName}</Text>
               </View>
               <View style={HealthreportStyle.row}>
                 <Text style={HealthreportStyle.label}>{t('Date')}</Text>
                 <Text style={HealthreportStyle.value}>
-                  {moment(item.date).add(5, "hours").format("DD-MM-YYYY")}
+                  {moment(item.date).format("DD-MM-YYYY")}
+                  {/* {new Date(item.date).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
+                    })} */}
                 </Text>
               </View>
               <View style={HealthreportStyle.row}>
                 <Text style={HealthreportStyle.label}>{t('TruckNumber')}</Text>
-                <Text style={HealthreportStyle.value}>{item.trucknumber}</Text>
+                <Text style={HealthreportStyle.value}>{item.truckNumber}</Text>
               </View>
               <View style={HealthreportStyle.parentbutton}>
                 <TouchableOpacity style={HealthreportStyle.button} onPress={() => fetchReportDetails(item.id)}>
@@ -262,9 +265,10 @@ const HealthReportlist = () => {
 
             {selectedReport && (
               <>
+          
                 <View style={HealthreportStyle.rowone}>
                   <Text style={HealthreportStyle.labelone}>{t('TruckNumber')}</Text>
-                  <Text style={HealthreportStyle.valueone}>{selectedReport.trucknumber}</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReport.truckNumber}</Text>
                 </View>
 
                 <View style={HealthreportStyle.rowone}>
@@ -276,46 +280,32 @@ const HealthReportlist = () => {
                       year: 'numeric'
                     })}
                   </Text>
-
-
-
-
-
                 </View>
 
                 <View style={HealthreportStyle.rowone}>
                   <Text style={HealthreportStyle.labelone}>{t('ApprovalStatus')}:</Text>
-                  <Text style={HealthreportStyle.valueone}>{selectedReport.approvalstatus}</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReport.approvalStatus}</Text>
                 </View>
 
-                {selectedReport.datastring && (() => {
-                  const parsedData = JSON.parse(selectedReport.datastring);
-                  return (
-                    <>
-                      {/* <View style={styles.rowone}>
-                        <Text style={styles.labelone}>Destination Branch:</Text>
-                        <Text style={styles.valueone}>{parsedData.CNAName}duti</Text>
-                      </View>
-                      <View style={styles.rowone}>
-                        <Text style={styles.labelone}>Storage Name:</Text>
-                        <Text style={styles.valueone}>{parsedData.StorageName}</Text>
-                      </View> */}
-                      <View style={HealthreportStyle.rowone}>
-                        <Text style={HealthreportStyle.labelone}>{t('Grossweight')}</Text>
-                        <Text style={HealthreportStyle.valueone}>{parsedData.GrossWeight}</Text>
-                      </View>
-                      <View style={HealthreportStyle.rowone}>
-                        <Text style={HealthreportStyle.labelone}>{t('Netweight')}</Text>
-                        <Text style={HealthreportStyle.valueone}>{parsedData.NetWeight}</Text>
-                      </View>
-                      <View style={HealthreportStyle.rowone}>
-                        <Text style={HealthreportStyle.labelone}>{t('Tareweight')}</Text>
-                        <Text style={HealthreportStyle.valueone}>{parsedData.TareWeight}</Text>
-                      </View>
-                    </>
-                  );
-                })()}
+                
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>{t('GrossWeight')}</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReport.grossWeight}</Text>
+                </View>
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>{t('NetWeight')}</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReport.netWeight}</Text>
+                </View>
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>{t('TareWeight')}</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReport.tareWeight}</Text>
+                </View>
 
+
+                <View style={HealthreportStyle.rowone}>
+                  <Text style={HealthreportStyle.labelone}>Bag Count</Text>
+                  <Text style={HealthreportStyle.valueone}>{selectedReport.bagCount}</Text>
+                </View>
 
 
                 <View style={HealthreportStyle.rowone}>
@@ -358,12 +348,17 @@ const HealthReportlist = () => {
                 )}
 
 
+
+           
               </>
             )}
 
             <TouchableOpacity style={HealthreportStyle.closeButton} onPress={() => setModalVisible(false)}>
               <Text style={HealthreportStyle.buttonText}>{t('Close')}</Text>
             </TouchableOpacity>
+
+
+           
           </View>
 
         </View>

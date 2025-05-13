@@ -23,8 +23,8 @@ const ForgetPassword: React.FC<ForgetPasswordProps> = ({ navigation, route }) =>
 
 
   useEffect(() => {
-    if (route?.params?.mobileno) {
-      setMobileno(route.params.mobileno);
+    if (route?.params?.mobileNo) {
+      setMobileno(route.params.mobileNo);
     }
   }, [route]);
 

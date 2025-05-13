@@ -37,25 +37,29 @@ const RecieveDhasboard = () => {
   }, []);
 
   
-
   const fetchCounts = async () => {
     setLoading(true);
     try {
-      const dispatchResponse = await api.get('/api/dispatch/truckcount/total?DispatchStatus=DISPATCHED');
-      setDispatchCount(dispatchResponse.data);
-
-      const recieveResponse = await api.get('/api/dispatch/truckcount/total?DispatchStatus=RECEIVED');
-      setRecieveCount(recieveResponse.data);
-
-      const requestRemPending = await api.get('/api/reimbursment/count?ApprovalStatus=PENDING');
-      setRequestRempending(requestRemPending.data);
-
-      const paymentPaid = await api.get('/api/reimbursment/count?BillPaymentStatus=PAID&ApprovalStatus=APPROVED');
-      setPaymentPaid(paymentPaid.data);
-
+      const [dispatchResponse, recieveResponse, requestRemPending, paymentPaid] = await Promise.all([
+        api.get('/api/dispatch/truckcount/total?DispatchStatus=DISPATCHED'),
+        api.get('/api/dispatch/truckcount/total?DispatchStatus=RECEIVED'),
+        api.get('/api/reimbursment/count?ApprovalStatus=PENDING'),
+        api.get('/api/reimbursment/count?BillPaymentStatus=PAID&ApprovalStatus=APPROVED')
+      ]);
+  
+      setDispatchCount(dispatchResponse?.data ?? 0);
+      setRecieveCount(recieveResponse?.data ?? 0);
+      setRequestRempending(requestRemPending?.data ?? 0);
+      setPaymentPaid(paymentPaid?.data ?? 0);
+      
       setError(null);
     } catch (err) {
       setError('Failed to fetch data');
+      // Reset counts on error
+      setDispatchCount(0);
+      setRecieveCount(0);
+      setRequestRempending(0);
+      setPaymentPaid(0);
     } finally {
       setLoading(false);
       setRefreshing(false);

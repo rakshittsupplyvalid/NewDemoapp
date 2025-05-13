@@ -1,20 +1,15 @@
 
-// Step 0 - Company, Branch, District
+
 export function validateStepOne(formData) {
-  const requiredFields = [
-    { key: 'CNAName', field: 'companyId', message: 'Company is required' },
-    { key: 'DestinationBranch', field: 'branchvalue', message: 'Branch is required' },
-    { key: 'DestinationDistrict', field: 'DestinationDistrict', message: 'District is required' }
-  ];
-
-  for (let field of requiredFields) {
-    if (!formData[field.key]) {
-      return { isValid: false, message: field.message, field: field.key };
-    }
+  if (!formData?.DestinationBranch) {
+    return { isValid: false, message: 'Company is required' };
   }
-
+  if (!formData?.branchvalue) {
+    return { isValid: false, message: 'Branch is required' };
+  }
   return { isValid: true };
-};
+}
+
 
 
 

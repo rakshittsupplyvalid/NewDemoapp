@@ -1,106 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Alert, TextInput, TouchableOpacity, Image, StatusBar, ImageBackground, Keyboard, Switch, Button, ActivityIndicator } from 'react-native';
-import { Text } from 'react-native-elements';
+import React, { useEffect, useState } from 'react';
+import { View, TextInput, Button, Alert, ActivityIndicator, StyleSheet, Keyboard, StatusBar, Image, TouchableOpacity, ImageBackground } from 'react-native';
 import api from '../service/api/apiInterceptors';
+import { setCachedToken, clearCachedToken } from '../service/token';
 import { mmkvStorage } from '../service/storage';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { screenWidth } from '../utils/Constants';
 import NetInfo from "@react-native-community/netinfo";
-import {useTranslation} from 'react-i18next';
+import { Text } from 'react-native-elements';
+import { useTranslation } from 'react-i18next';
+import { screenWidth } from '../utils/Constants';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-
-
-interface LoginAppProps {
-  navigation: StackNavigationProp<any>;
-}
-
-const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
+const LoginApp = ({ navigation }) => {
   const [isConnected, setIsConnected] = useState(true);
-  const [mobileno, setMobileno] = useState('9990665359');
-  const [password, setPassword] = useState('Onion@2025');
-  const [isPressed, setIsPressed] = useState(false);
+  const [mobileNo, setMobileNo] = useState('9990665358');
+  const [password, setPassword] = useState('Pass@123');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
-  const { t ,  i18n } = useTranslation();
+
+  const { t, i18n } = useTranslation();
   const isOffline = !isConnected;
+
+
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected);
     });
 
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe
+        ();},
+    []
+  );
+
+  const validateToken = (token: string): boolean => {
+    if (!token || typeof token !== 'string') {
+      console.error('Invalid token format');
+      return false;
+    }
+
+    // Basic JWT format validation (3 parts separated by dots)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      console.error('Malformed JWT token');
+      return false;
+    }
+
+    return true;
+  };
+
 
   const handleLogin = async () => {
-    if (!mobileno || !password) {
-      Alert.alert('Error', 'Please enter both mobile number and password.');
+    if (!mobileNo || !password) {
+      Alert.alert('Error', 'Please enter both mobile number and password');
       return;
     }
-  
-    if (mobileno.length !== 10 || isNaN(Number(mobileno))) {
-      Alert.alert('Error', 'Please enter a valid 10-digit mobile number.');
-      return;
-    }
-  
+
     // Check internet connection
     const netState = await NetInfo.fetch();
-    if (!netState.isConnected) {
-      Alert.alert('No Internet', 'Please check your internet connection and try again.');
-      return;
-    }
-  
+    // if (!netState.isConnected) {
+    //   Alert.alert('No Internet', 'Please check your internet connection and try again.');
+    //   return;
+    // }
+
     setIsLoading(true);
-  
+
     try {
-      const response = await api.post('/api/login/assayer', { mobileno, password });
-  
-      if (response.status === 200) {
-        const responseData = response.data;
-  
-        mmkvStorage.setItem('userinfo', JSON.stringify(responseData));
-        mmkvStorage.setItem('token', responseData.token);
-  
-        setIsLoading(false);
+      // Clear any existing credentials
+      await clearCachedToken();
+      mmkvStorage.removeItem('userinfo');
+
+      // API call
+      const response = await api.post('/api/login/user', { mobileNo, password });
+      console.log("respone" , response.data.token)
+
+      if (response.status !== 200) {
+        Alert.alert('Login Failed', response.data?.message || 'Invalid credentials.');
+        return;
+      }
+
+      const responseData = response.data;
+
+      // Token validation
+      const { token } = responseData;
+      if (!token) {
+        throw new Error('No token received in response');
+      }
+      if (!validateToken(token)) {
+        throw new Error('Invalid token format received from server');
+      }
+
+      // Store token and user info
+      mmkvStorage.setItem('userinfo', JSON.stringify(responseData));
+      mmkvStorage.setItem('token', token);
+      setCachedToken(token);
+
+      
+      navigation.navigate('DispatchDrawernavigator');
+
+    } catch (error) {
+
+      if (error)
+         {
+          Alert.alert( "Invalid username/password")
+         }
+    
+
+      let errorMessage = 'An error occurred during login';
+      if (error.message.includes('Invalid token')) {
+        errorMessage = 'Received invalid authentication data from server';
+      } else if (error.response) {
+        if (error.response.status === 500) {
+          if (error.response.data?.includes("Requested value 'Branch' was not found")) {
+            errorMessage = 'Account configuration issue - please contact support';
+          } else if (error.response.data?.includes('column d.AssayerId does not exist')) {
+            errorMessage = 'System maintenance in progress - please try again later';
+          }
+        } else {
+          errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
+        }
+      } else if (error.request) {
+        errorMessage = 'No response from server - check your network connection';
+      }
+
+      clearCachedToken();
+      mmkvStorage.removeItem('userinfo');
+
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNavigation = async () => {
+    if (isOffline) {
+      // Check if we have cached credentials
+      const cachedUserInfo = mmkvStorage.getItem('userinfo', undefined);
+      const cachedToken = mmkvStorage.getItem('token', undefined);
+
+      if (cachedUserInfo && cachedToken) {
+        // User has valid cached credentials - allow navigation
         navigation.navigate('DispatchDrawernavigator');
       } else {
-        setIsLoading(false);
-        Alert.alert('Login Failed', response.data.message || 'Invalid credentials.');
-      }
-    } 
-
-    
-    
-    catch (error: any) {
-      setIsLoading(false);
-   
-    
-      if (error.response && error.response.status === 400) {
-        const message = error.response.data?.message || 'Invalid username or password.';
+        // No cached credentials - show appropriate message
         Alert.alert(
-          'Login Failed',
-          message,
-          [{ text: 'OK' }]
+          'Offline Mode',
+          'You need to login at least once when online to use offline mode'
         );
-      } else {
-        Alert.alert( 'Login Failed', "Password might be incorect");
-     
       }
-    }
-  };
-  
-  const handleNavigationOnce = () => {
-    if (isPressed) return; // Prevent multiple presses
-    setIsPressed(true);
-    handleNavigation(); // Your original function
-  };
-
-  const handleNavigation = () => {
-    if (isOffline) {
-      navigation.navigate('DispatchDrawernavigator'); // Directly navigate in Offline mode
     } else {
-      handleLogin(); // Login ke baad navigate
+      // Online mode - proceed with normal login
+      await handleLogin();
     }
   };
 
@@ -127,7 +174,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
       <View style={styles.logoContainer}>
         <Image source={require('../assets/logo.png')} style={styles.logo} />
         <View style={styles.TextContainer}>
-    
+
 
           <Text style={styles.logoText}>{t('loginTitle')}</Text>
           <Text style={styles.logoTextinner}>{t('loginSubtitle')}</Text>
@@ -152,8 +199,8 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             placeholder={t('mobilePlaceholder')}
             keyboardType="number-pad"
             autoCapitalize="none"
-            value={isOffline ? '' : mobileno}
-            onChangeText={setMobileno}
+            value={isOffline ? '' : mobileNo}
+            onChangeText={setMobileNo}
             maxLength={10}
             editable={!isOffline} // Disable input when offline
           />
@@ -166,7 +213,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             secureTextEntry={!passwordVisible}
             value={isOffline ? '' : password}
             onChangeText={setPassword}
-            editable={!isOffline} 
+            editable={!isOffline}
           />
           <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
             <Icon name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#666" />
@@ -175,7 +222,7 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 
 
         <View style={{ alignItems: 'flex-end', width: '100%', paddingHorizontal: 20 }}>
-          <TouchableOpacity  onPress={() => navigation.navigate('ForgetPassword', { mobileno })}>
+          <TouchableOpacity onPress={() => navigation.navigate('ForgetPassword', { mobileNo })}>
             <Text style={styles.footerText}>{t('forgotPassword')}</Text>
           </TouchableOpacity>
         </View>
@@ -186,8 +233,8 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
             <Text style={styles.footerText}>Offline Form</Text>
           </TouchableOpacity>
         </View> */}
-{/* 
-        <Button title="Hindi" onPress={() => i18n.changeLanguage('hi')} />
+        {/* 
+      <Button title="Hindi" onPress={() => i18n.changeLanguage('hi')} />
 <Button title="English" onPress={() => i18n.changeLanguage('en')} /> */}
 
 
@@ -195,17 +242,13 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
 
 
       <View style={styles.view}>
-        <TouchableOpacity style={styles.button}
-         onPress={ handleNavigationOnce}
-        disabled={isPressed}>
+        <TouchableOpacity style={styles.button} onPress={handleNavigation}>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>{isOffline ? t('offlineButton') : t('loginButton')}</Text>
+          )}
 
-{isPressed ? (
-      <ActivityIndicator color="#fff" size="small" />
-    ) : (
-      <Text style={styles.buttonText}>
-        {isOffline ? t('offlineButton') : t('loginButton')}
-      </Text>
-    )}
         </TouchableOpacity>
 
 
@@ -218,8 +261,10 @@ const LoginApp: React.FC<LoginAppProps> = ({ navigation }) => {
         </View>
       )}
 
-      
+
     </View>
+
+
   );
 };
 
@@ -392,3 +437,8 @@ const styles = StyleSheet.create({
 });
 
 export default LoginApp;
+
+
+
+
+

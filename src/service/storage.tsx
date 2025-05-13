@@ -28,7 +28,7 @@ export const mmkvStorage = {
      * @param {string} key - The key for the value to retrieve
      * @returns {any} - The value stored against the key (string, number, boolean, object)
      */
-    getItem: (key: string): any | null => {
+    getItem: (key: string, token: any): any | null => {
         // Try to retrieve as a string first
         const stringValue = storage.getString(key);
         if (stringValue !== undefined) {

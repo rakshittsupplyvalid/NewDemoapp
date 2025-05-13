@@ -10,7 +10,7 @@ type State = {
 };
 
 const defaultValue: State = {
-    form: { },
+    form: {},
     hidden: {},
     fielddata: {},
     disable: {},

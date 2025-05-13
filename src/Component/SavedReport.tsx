@@ -5,7 +5,7 @@ import Navbar from "../../App/Navbar";
 import Footer from "../../App/Footer";
 import { useNavigation } from '@react-navigation/native';
 import { DrawerNavigationProp } from '@react-navigation/drawer';
-import { RootStackParamList } from '../../types/Type';
+import { RootStackParamList } from "../types/Type";
 import { useTranslation } from 'react-i18next';
 
 const SavedReport  = () => {

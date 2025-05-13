@@ -27,7 +27,7 @@ type RouteParams = {
       bagCount?: number | null;
       size?: number | null;
       Branchpersonname: string;
-      imageUri: string[]; 
+      imageUri: string[];
     };
   };
 };
@@ -42,6 +42,7 @@ const SubmitTruckData = () => {
   const route = useRoute<RouteProp<RouteParams, 'params'>>();
   const { truckData } = route.params;
   const [selectedCompany, setSelectedCompany] = useState("");
+    const [selectedHelthReport, setHelthReportCompany] = useState('');
   const [selectedCompanyName, setSelectedCompanyName] = useState("");
   const [destinationBranch, setDestinationBranch] = useState([]);
   const [destinationDistrict, setDestinationDistrict] = useState([]);
@@ -50,45 +51,32 @@ const SubmitTruckData = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [previousSteps, setPreviousSteps] = useState<number[]>([]);
   const [companyId, setCompanyId] = useState('');
-   const [branchId, setBranchId] = useState('');
+  const [branchId, setBranchId] = useState('');
   const [data2, setData2] = useState([]);
   const [imageUri, setImageUri] = useState<ImageAsset[]>([]);
 
 
-    const storage = new MMKV();
+  const storage = new MMKV();
+
+  // Convert date to UTC ISO format
+const utcDate = new Date(truckData.date).toISOString();
+
+// Logging for debug
+console.log('Original Date:', truckData.date);
+console.log('UTC Date:', utcDate);
 
 
 
- 
 
-
-  const handleNext = (nextStep: number) => {
-  
-
-
-    setPreviousSteps([...previousSteps, currentStep]); // Store current step in history
-    setCurrentStep(nextStep);
-
-
-  };
-
-  const handlePrevious = () => {
-    if (previousSteps.length > 0) {
-      const lastStep = previousSteps[previousSteps.length - 1]; // Get the last step
-
-      setPreviousSteps(previousSteps.slice(0, -1)); // Remove last step from history
-      setCurrentStep(lastStep);
-    }
-
-  };
 
   const handleSubmit = async () => {
 
     const formData = new FormData();
-    formData.append("CNAName", selectedCompanyName)     
-    formData.append("DestinationBranch", selectedbranchs);
-    formData.append('DestinationDistrict', selectedDistrict); 
-    formData.append('truckNumber', truckData.truckNumber);
+    formData.append("DestinationBranch", selectedCompanyName)
+    formData.append("StorageId", selectedbranchs);
+    formData.append('TruckNumber', truckData.truckNumber);
+    formData.append('Date', utcDate);
+
     formData.append('GrossWeight', truckData.grossWeight?.toString() || '0');
     formData.append('TareWeight', truckData.tareWeight?.toString() || '0');
     formData.append('NetWeight', truckData.netWeight?.toString() || '0');
@@ -102,9 +90,9 @@ const SubmitTruckData = () => {
     formData.append('MoisturePercent', truckData.moisturePercent?.toString() || '0');
     formData.append('SpoliedPercent', truckData.SpoliedPercent?.toString() || '0');
     formData.append('FPCPersonName', truckData.Branchpersonname);
-  
+
     formData.append('SpoliedComment', truckData.SpoliedComment?.toString() || '0');
-  
+
 
     formData.append('Date', truckData.date);
     // formData.append('Date', updatedata);
@@ -121,64 +109,55 @@ const SubmitTruckData = () => {
 
     }
 
-    try {
-      const response = await api.post('/api/healthreport/receive', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+     try {
+  const endpoint =
+    selectedHelthReport === 'ca'
+      ? '/api/healthreport/ca/receive'
+      : '/api/healthreport/normal/receive';
 
-      if (response.status === 200 || response.status === 201) {
-        // Delete formData
-        storage.delete('formData');
-      
-        // Remove from offlineForms list
-        const existingOfflineData = storage.getString("offlineForms");
-        let parsedOfflineData = existingOfflineData ? JSON.parse(existingOfflineData) : [];
-      
-        const filteredOfflineData = parsedOfflineData.filter((form: any) => {
-          return !(form.truckNumber === truckData.truckNumber && form.date === truckData.date);
-        });
-      
-        storage.set("offlineForms", JSON.stringify(filteredOfflineData));
-      
-        console.log('Data submitted and removed from MMKV!');
-        alert('Health Report Submitted Successfully!');
-      
-        // Reset everything
-        setCompanyId('');
-        setData2([]);
-        setDestinationBranch([]);
-        setDestinationDistrict([]);
-        setBranchId('');
-        setImageUri([]);
-        setCurrentStep(1);
-        console.log('response', response.data);
-      }
-      
+  const response = await api.post(endpoint, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImViNjU3NjBjLTE4ODQtNDlmYi1iZDJlLWZkYjQwYWIwNDhkZSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InR5YWdpcmFrc2hpdDczMUBnbWFpbC5jb20iLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9tb2JpbGVwaG9uZSI6Ijk5OTA2NjUzNTgiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiOTk5MDY2NTM1OCIsImp0aSI6ImM3Zjk4OTFlLTNhMjYtNGM2OC1iMjE1LWI2OTQzY2VlN2Y2MiIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkdyYWRlVXNlciIsIkdyb3VwVHlwZSI6IlNVUEVSR1JPVVAiLCJHcm91cElkIjoiYzQ3NjY5ODEtNjk0NS00ZGFmLThjNGUtNGI2NGJiZWQ4YjQ5IiwiSGVpcmFyY2h5IjoiW10iLCJCcmFuY2hUeXBlIjoiIiwiZXhwIjoxNzQ3MTMwOTg1LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjYxOTU1IiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdDo0MjAwIn0.7W8Hd3Q3csGddtufTh0oFrCvCq651Gm-ensPZul_SOg',
+    },
+  });
 
-      console.log('Form submitted successfully:', response.data);
-      alert('Health Report Submitted Successfully!');
+  if (response.status === 200 || response.status === 201) {
+    // Delete formData from storage
+    storage.delete('formData');
 
+    // Remove from offlineForms list
+    const existingOfflineData = storage.getString("offlineForms");
+    let parsedOfflineData = existingOfflineData ? JSON.parse(existingOfflineData) : [];
 
-      setCompanyId('');
-      setData2([]);
-      setDestinationBranch([]);
-      setDestinationDistrict([]);
-      setBranchId('');
-     
+    const filteredOfflineData = parsedOfflineData.filter((form: any) => {
+      return !(form.truckNumber === truckData.truckNumber && form.date === truckData.date);
+    });
 
-      setImageUri([]);
+    storage.set("offlineForms", JSON.stringify(filteredOfflineData));
 
-      // Reset step
-      setCurrentStep(1);
-      console.log('response', response.data);
+    console.log('Data submitted and removed from MMKV!');
+    alert('Health Report Submitted Successfully!');
 
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Failed to submit Health Report. Please try again.');
-      console.log('error', error);
-    }
+    // Reset everything
+   setSelectedCompanyName('');
+    setCompanyId('');
+    setData2([]);
+    setDestinationBranch([]);
+    setDestinationDistrict([]);
+    setBranchId('');
+    setImageUri([]);
+    setCurrentStep(1);
+
+    console.log('response', response.data);
+  }
+
+} catch (error) {
+  console.log("Error submitting form:", error);
+  alert("Submission failed. Please try again.");
+  
+}
+
   };
 
 
@@ -193,55 +172,32 @@ const SubmitTruckData = () => {
 
 
   useEffect(() => {
-
   }, [destinationDistrict]);
 
 
   const fetchData2 = async () => {
     try {
-      const response = await api.get("/api/dropdown/company");
+      const response = await api.get("/api/group?GroupType=BRANCH&BranchType=RECEIVING&ApprovalStatus=APPROVED&IsActive=true&IsActive=false");
       setData2(response.data);
-
-
     } catch (error) {
       console.error("Error fetching data2:", error);
+      console.log("Error fetching data2:", error);
     }
   };
 
-  const fetchData3 = async (companyId: any) => {
+  const fetchData3 = async (value) => {
     try {
       const response = await api.get(
-        `/api/group?GroupType=Branch&BranchType=Receiving&ApprovalStatus=APPROVED&CompanyId=${companyId}`
-
+        `/api/dropdown/group/${value}/location`
       );
-
       setDestinationBranch(response.data);
     } catch (error) {
       console.error("Error fetching data3:", error);
     }
   };
 
-  const fetchData5 = async (branchId: any) => {
-    try {
-      const response = await api.get(
-        `/api/dropdown/group/${branchId}/location?locationType=GENERAL`
-
-      );
-
-      setDestinationDistrict(response.data);
 
 
-
-
-    } catch (error) {
-      console.error("Error fetching data5:", error);
-    }
-  };
-
-  useEffect(() => {
-
-    if (branchId) fetchData5(branchId);
-  }, [branchId]);
 
 
   return (
@@ -258,53 +214,49 @@ const SubmitTruckData = () => {
         <ScrollView contentContainerStyle={styles.scrollView}>
 
 
-          {currentStep === 1 && (
-            <View style={styles.onecontainers}>
+          
+               <View style={styles.content}>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={selectedHelthReport}
+                    onValueChange={(itemValue) => {
+                      setHelthReportCompany(itemValue);
+                      // You might want to reset the form when changing report type
+                      
+                    }}
+                  >
+                    <Picker.Item label="Select Healthreport Type" value="" />
+                    <Picker.Item label="Normal" value="normal" />
+                    <Picker.Item label="CA" value="ca" />
+                  </Picker>
 
-              {/* 
-                        <View style={styles.content}>
-                          <View style={styles.pickerContainer}>
-                          <DropDownPicker
-                  open={open}
-                  value={selectedCompany}
-                  items={items}
-                  setOpen={setOpen}
-                  setValue={setSelectedCompany}
-                  setItems={setItems}
-                  searchable={true}
-                  placeholder="Select Company"
-                  onChangeValue={(value) => {
-                    const selectedCompanyObj = data2.find((item) => item.value === value);
-                    if (selectedCompanyObj) {
-                      console.log("Selected Company:", selectedCompanyObj.text);
-                    }
-                  }}
-                />
-                          </View>
-                        </View> */}
+
+                </View>
+              
+
               <View style={styles.content}>
                 <View style={styles.pickerContainer}>
                   <Picker
                     selectedValue={selectedCompany}
                     onValueChange={(value) => {
-
-
                       setSelectedCompany(value);
                       setCompanyId(value);
 
-                      // ID ke corresponding text dhoondo
-                      const selectedCompanyObj = data2.find(item => item.value === value);
+                      // ID ke basis pe selected object dhoondo
+                      const selectedCompanyObj = data2.find(item => item.id === value);
                       if (selectedCompanyObj) {
-                        setSelectedCompanyName(selectedCompanyObj.text); // Alag state me store karo
-
+                        setSelectedCompanyName(selectedCompanyObj.id);
+                        console.log('Selected ID:', selectedCompanyObj.id);
+                        console.log('Selected Name:', selectedCompanyObj.name);
                       }
                     }}
                   >
                     <Picker.Item label="Select Company" value="" />
                     {data2.map((item, idx) => (
-                      <Picker.Item key={idx} label={item.text} value={item.value} />
+                      <Picker.Item key={idx} label={item.name} value={item.id} />
                     ))}
                   </Picker>
+
                 </View>
               </View>
 
@@ -317,13 +269,13 @@ const SubmitTruckData = () => {
                       setBranchId(String(value));
                       const selectedBranch = destinationBranch.find(item => item.id === value);
                       if (selectedBranch) {
-                        setSelectedbranch(selectedBranch.name);
+                        setSelectedbranch(selectedBranch.value);
                       }
                     }}
                   >
                     <Picker.Item label="Select Branch" value="" />
                     {destinationBranch.map((item, idx) => (
-                      <Picker.Item key={idx} label={item.name} value={item.id} />
+                      <Picker.Item key={idx} label={item.text} value={item.id} />
                     ))}
                   </Picker>
                 </View>
@@ -331,29 +283,6 @@ const SubmitTruckData = () => {
               </View>
 
 
-              <View style={styles.content}>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    style={styles.picker}
-                    onValueChange={(value) => {
-
-
-                      // ID ke corresponding text dhoondo
-                      const selectedText = destinationDistrict.find(item => item.value === value)?.text || "Not Selected";
-
-                      setSelecteddistrict(selectedText); // Text ko store karo
-                      console.log('Selected District:', selectedText);
-                    }}
-                    selectedValue={selectedDistrict} // Ab text store ho raha hai
-                  >
-                    <Picker.Item label="Select District location" value="" />
-                    {destinationDistrict.map((item, idx) => (
-                      <Picker.Item key={idx} label={item.text} value={item.value} />
-                    ))}
-                  </Picker>
-
-                </View>
-              </View>
 
 
 
@@ -367,13 +296,13 @@ const SubmitTruckData = () => {
 
 
             </View>
-          )}
+          
 
 
-    
-    
 
-{/* 
+
+
+{/*           
           <View >
             <Text>Truck Numbser: {truckData.truckNumber}</Text>
             <Text>Date: {truckData.date}</Text>
